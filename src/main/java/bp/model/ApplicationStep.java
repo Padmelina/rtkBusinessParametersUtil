@@ -4,7 +4,10 @@ public enum ApplicationStep {
     FileParsingStep("FileParsingStep"),
     FileCorrectStep("FileCorrectStep"),
     FileCheckingStep("FileCheckingStep"),
-    ScriptStep("ScriptStep");
+    ScriptStep("ScriptStep"),
+    CheckEnded("CheckEnded"),
+    StatisticSuccessStep("StatisticSuccessStep"),
+    StatisticErrorsStep("StatisticErrorsStep");
 
     private String stepName;
 
@@ -21,6 +24,9 @@ public enum ApplicationStep {
         if (FileCorrectStep.stepName.equals(name)) return FileCorrectStep;
         if (FileCheckingStep.stepName.equals(name)) return FileCheckingStep;
         if (ScriptStep.stepName.equals(name)) return ScriptStep;
+        if (StatisticSuccessStep.stepName.equals(name)) return StatisticSuccessStep;
+        if (ScriptStep.stepName.equals(name)) return ScriptStep;
+        if (StatisticErrorsStep.stepName.equals(name)) return StatisticErrorsStep;
         return null;
     }
 }

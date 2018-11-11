@@ -11,11 +11,10 @@ import javafx.stage.Stage;
 public class Main extends Application {
     private ApplicationConfiguration configuration = new ApplicationConfiguration();
     private LoadAndProcessExcelController mainController;
-    private FXMLLoader loader;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        loader = new FXMLLoader(getClass().getResource("/load_and_process_excel.fxml"));
+        FXMLLoader loader  = new FXMLLoader(getClass().getResource("/load_and_process_excel.fxml"));
         configuration.init();
         mainController = new LoadAndProcessExcelController(configuration);
         loader.setController(mainController);

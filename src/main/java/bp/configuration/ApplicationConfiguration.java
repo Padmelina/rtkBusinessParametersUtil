@@ -7,6 +7,7 @@ import bp.model.Action;
 import bp.model.ApplicationStep;
 import bp.model.ParametersType;
 import bp.parser.FileParser;
+import bp.query.ScriptGenerator;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import javafx.stage.FileChooser;
@@ -17,11 +18,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static bp.model.Constants.DataBaseConstants.DRIVER_CLASS_NAME;
 import static bp.model.Constants.FileChooserConstants.*;
+import static bp.model.ParametersType.INSTALLER_VISIT;
 import static bp.utils.ymlResourcesParser.getMapFromRecources;
 
 public class ApplicationConfiguration {
@@ -36,15 +37,20 @@ public class ApplicationConfiguration {
     @Getter
     private Connection connection;
     @Getter
-    private Map<String, ParametersType> sheetNamesMap = new HashMap<>();
+    private Map<String, ParametersType> typesBySheetNames = new HashMap<>();
+    @Getter
+    private Map<ParametersType, String> namesBySheetType = new HashMap<>();
     @Getter
     private Map<String, Action> actionsMap = new HashMap<>();
     @Getter
     private Map<ApplicationStep, String> messages = new HashMap<>();
     @Getter
     private FileParser fileParser;
-
     private FileChooser fileChooser;
+    @Getter
+    private List<ParametersType> checkedTypes = new ArrayList<>(Arrays.asList(INSTALLER_VISIT));
+    @Getter
+    private ScriptGenerator scriptGenerator;
 
     public void init() throws IOException, SQLException {
         URL configFileUrl = ApplicationConfiguration.class.getClassLoader().getResource("db_connection.yml");
@@ -54,7 +60,8 @@ public class ApplicationConfiguration {
 
         Map<String, String> sheetNames = getMapFromRecources("sheet_names.yml");
         for (Map.Entry <String, String> name : sheetNames.entrySet()) {
-            sheetNamesMap.put(name.getKey(), ParametersType.parseType(name.getValue()));
+            typesBySheetNames.put(name.getKey(), ParametersType.parseType(name.getValue()));
+            namesBySheetType.put(ParametersType.parseType(name.getValue()), name.getKey());
         }
 
         Map<String, String> actions = getMapFromRecources("actions.yml");
@@ -67,7 +74,6 @@ public class ApplicationConfiguration {
             messages.put(ApplicationStep.parseStep(step.getKey()), step.getValue());
         }
 
-
         hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(dbConnectionProperties.getUrl());
         hikariConfig.setUsername(dbConnectionProperties.getLogin());
@@ -77,9 +83,11 @@ public class ApplicationConfiguration {
         dataSource = new HikariDataSource(hikariConfig);
         connection = dataSource.getConnection();
 
-        fileParser = new FileParser(actionsMap, sheetNamesMap);
+        fileParser = new FileParser(actionsMap, typesBySheetNames);
 
         entityChecker = new EntityChecker(connection);
+
+        scriptGenerator = new ScriptGenerator(connection);
     }
 
     public FileChooser getFileChooser() {

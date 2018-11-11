@@ -4,6 +4,7 @@ import bp.model.CheckError;
 import bp.configuration.ApplicationConfiguration;
 import bp.model.ParametersType;
 import bp.model.entity.AbstractEntity;
+import bp.model.entity.InstallerVisit;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -14,13 +15,15 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static bp.model.ApplicationStep.FileCheckingStep;
-import static bp.model.ApplicationStep.FileCorrectStep;
-import static bp.model.ApplicationStep.FileParsingStep;
+import static bp.model.ApplicationStep.*;
+import static bp.model.CheckError.Ok;
+import static bp.model.ParametersType.INSTALLER_VISIT;
 
 public class LoadAndProcessExcelController {
     @FXML
@@ -40,7 +43,10 @@ public class LoadAndProcessExcelController {
 
     private Map<ParametersType, List<AbstractEntity>> allSheets;
 
-    private Map<ParametersType, Map <AbstractEntity, CheckError>> checkResults = new HashMap<>();
+    private Map<ParametersType, List<AbstractEntity>> validRows = new HashMap<>();
+    private Map<ParametersType, List<AbstractEntity>> invalidRows = new HashMap<>();
+
+    private Map<ParametersType, Map<AbstractEntity, CheckError>> checkResults = new HashMap<>();
 
     public LoadAndProcessExcelController(ApplicationConfiguration configuration) {
         this.configuration = configuration;
@@ -64,10 +70,33 @@ public class LoadAndProcessExcelController {
         for (Map.Entry <ParametersType, List<AbstractEntity>> entryMap : allSheets.entrySet()) {
             switch (entryMap.getKey()) {
                 case INSTALLER_VISIT:
+                    List<AbstractEntity> valid = new ArrayList<>();
+                    List<AbstractEntity> errors = new ArrayList<>();
+                    Map<AbstractEntity, CheckError> report = new HashMap<>();
                     for (AbstractEntity entity : entryMap.getValue()) {
                         CheckError error = configuration.getEntityChecker().check(entryMap.getKey(), entity);
+                        if (!Ok.equals(error)) {
+                            errors.add(entity);
+                        } else valid.add(entity);
+                        report.put(entity, error);
                     }
+                    checkResults.put(INSTALLER_VISIT, report);
+                    validRows.put(INSTALLER_VISIT, valid);
+                    invalidRows.put(INSTALLER_VISIT, errors);
+                    break;
             }
+        }
+        messageArea.setText(configuration.getMessages().get(ScriptStep));
+        generateResultStatistic();
+    }
+
+    private void generateResultStatistic() {
+        messageArea.setText(configuration.getMessages().get(CheckEnded));
+        for (ParametersType type : configuration.getCheckedTypes()) {
+            messageArea.appendText('\n' + configuration.getNamesBySheetType().get(type) + ": " + '\n');
+            messageArea.appendText(MessageFormat.format(configuration.getMessages().get(StatisticSuccessStep), validRows.get(type).size()) + '\n');
+            messageArea.appendText(MessageFormat.format(configuration.getMessages().get(StatisticErrorsStep), invalidRows.get(type).size()));
+
         }
     }
 }

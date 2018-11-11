@@ -1,4 +1,4 @@
-package bp.query;
+package bp.query.getter;
 
 import bp.model.entity.AbstractEntity;
 
