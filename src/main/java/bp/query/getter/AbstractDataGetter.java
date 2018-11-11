@@ -1,11 +1,13 @@
 package bp.query;
 
+import bp.model.entity.AbstractEntity;
+
 import java.sql.Connection;
 
-public class QueryDataGetter {
+public class AbstractDataGetter <T extends AbstractEntity> {
     protected Connection connection;
 
-    public QueryDataGetter(Connection connection) {
+    public AbstractDataGetter(Connection connection) {
         this.connection = connection;
     }
 
