@@ -1,11 +1,8 @@
 package bp.checker;
 
 import bp.checker.checkers.AbstractDbChecker;
+import bp.checker.checkers.implementations.*;
 import bp.model.CheckError;
-import bp.checker.checkers.implementations.CaseTypesChecker;
-import bp.checker.checkers.implementations.ProductChecker;
-import bp.checker.checkers.implementations.TechnologyChecker;
-import bp.checker.checkers.implementations.TerritoryChecker;
 import bp.model.ParametersType;
 import bp.model.entity.AbstractEntity;
 import bp.model.entity.InstallerVisit;

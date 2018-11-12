@@ -1,17 +1,16 @@
 package bp.query.getter;
 
+import bp.checker.entity.AbtractDbCheckEntity;
 import bp.model.entity.AbstractEntity;
 
 import java.sql.Connection;
 
-public class AbstractDataGetter <T extends AbstractEntity> {
+public abstract class AbstractDataGetter <T extends AbstractEntity, E extends AbtractDbCheckEntity> {
     protected Connection connection;
 
     public AbstractDataGetter(Connection connection) {
         this.connection = connection;
     }
 
-    public String getStringValue(String tableName, String clauseFieldName, String seekingFieldName, String value) {
-        return "";
-    }
+    public abstract E getDataFromDb(T value);
 }

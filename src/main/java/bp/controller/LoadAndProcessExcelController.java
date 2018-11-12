@@ -4,7 +4,6 @@ import bp.model.CheckError;
 import bp.configuration.ApplicationConfiguration;
 import bp.model.ParametersType;
 import bp.model.entity.AbstractEntity;
-import bp.model.entity.InstallerVisit;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -41,7 +40,7 @@ public class LoadAndProcessExcelController {
 
     private File bpFile;
 
-    private Map<ParametersType, List<AbstractEntity>> allSheets;
+    private Map<ParametersType, List<AbstractEntity>> allSheets = new HashMap<>();
 
     private Map<ParametersType, List<AbstractEntity>> validRows = new HashMap<>();
     private Map<ParametersType, List<AbstractEntity>> invalidRows = new HashMap<>();
@@ -65,8 +64,9 @@ public class LoadAndProcessExcelController {
     }
 
     @FXML
-    private void onProcessButtonAction(ActionEvent event)  {
+    private void onProcessButtonAction(ActionEvent event) throws IOException {
         messageArea.setText(configuration.getMessages().get(FileCheckingStep));
+        processFileButton.setDisable(true);
         for (Map.Entry <ParametersType, List<AbstractEntity>> entryMap : allSheets.entrySet()) {
             switch (entryMap.getKey()) {
                 case INSTALLER_VISIT:
@@ -87,7 +87,9 @@ public class LoadAndProcessExcelController {
             }
         }
         messageArea.setText(configuration.getMessages().get(ScriptStep));
+        configuration.getScriptGenerator().generateScripts(validRows);
         generateResultStatistic();
+        logButton.setDisable(false);
     }
 
     private void generateResultStatistic() {

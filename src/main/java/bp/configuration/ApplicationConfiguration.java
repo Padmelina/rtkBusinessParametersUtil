@@ -8,13 +8,15 @@ import bp.model.ApplicationStep;
 import bp.model.ParametersType;
 import bp.parser.FileParser;
 import bp.query.ScriptGenerator;
+import bp.utils.YmlResourcesParser;
+import com.esotericsoftware.yamlbeans.YamlException;
+import com.esotericsoftware.yamlbeans.YamlReader;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import javafx.stage.FileChooser;
 import lombok.Getter;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -23,7 +25,6 @@ import java.util.*;
 import static bp.model.Constants.DataBaseConstants.DRIVER_CLASS_NAME;
 import static bp.model.Constants.FileChooserConstants.*;
 import static bp.model.ParametersType.INSTALLER_VISIT;
-import static bp.utils.ymlResourcesParser.getMapFromRecources;
 
 public class ApplicationConfiguration {
     @Getter
@@ -51,6 +52,7 @@ public class ApplicationConfiguration {
     private List<ParametersType> checkedTypes = new ArrayList<>(Arrays.asList(INSTALLER_VISIT));
     @Getter
     private ScriptGenerator scriptGenerator;
+    private YmlResourcesParser ymlParser;
 
     public void init() throws IOException, SQLException {
         URL configFileUrl = ApplicationConfiguration.class.getClassLoader().getResource("db_connection.yml");
@@ -102,5 +104,13 @@ public class ApplicationConfiguration {
 
     public void release() throws SQLException {
         if (connection != null) connection.close();
+    }
+
+    private Map<String, String> getMapFromRecources(String recourceName) throws FileNotFoundException, YamlException {
+        InputStream inputStraem = getClass().getClassLoader().getResourceAsStream(recourceName);
+        if (inputStraem == null) return null;
+        InputStreamReader streamReader = new InputStreamReader(inputStraem);
+        YamlReader reader = new YamlReader(streamReader);
+        return (Map<String, String>) reader.read();
     }
 }

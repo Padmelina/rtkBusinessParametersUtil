@@ -9,7 +9,6 @@ import org.jooq.impl.DSL;
 import java.sql.Connection;
 
 import static bp.model.Constants.FieldsName.TERR_ID;
-import static bp.model.Constants.FieldsName.X_NAME_TECHN;
 import static bp.model.Constants.TableNames.DUAL;
 import static bp.model.Constants.TableNames.TERRITORY;
 import static org.jooq.impl.DSL.field;
