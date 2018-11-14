@@ -30,6 +30,23 @@ repositories {
     jcenter()
 }
 
+jar {
+    doFirst {
+        manifest {
+            attributes 'Main-Class': 'bp.Main'
+        }
+    }
+
+    from {
+        sourceSets.main.output.classesDirs
+    }
+
+    from {
+        configurations.compile.findAll().collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+}
+
 dependencies {
     compile group: 'com.zaxxer', name: 'HikariCP', version: '2.3.0'
     compile group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
