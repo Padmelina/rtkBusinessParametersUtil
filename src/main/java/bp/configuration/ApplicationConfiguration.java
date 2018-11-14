@@ -8,8 +8,6 @@ import bp.model.ApplicationStep;
 import bp.model.ParametersType;
 import bp.parser.FileParser;
 import bp.query.ScriptGenerator;
-import bp.utils.YmlResourcesParser;
-import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -18,12 +16,14 @@ import lombok.Getter;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 
 import static bp.model.Constants.DataBaseConstants.DRIVER_CLASS_NAME;
 import static bp.model.Constants.FileChooserConstants.*;
+import static bp.model.Constants.ResourceFilesNames.*;
 import static bp.model.ParametersType.INSTALLER_VISIT;
 
 public class ApplicationConfiguration {
@@ -52,26 +52,23 @@ public class ApplicationConfiguration {
     private List<ParametersType> checkedTypes = new ArrayList<>(Arrays.asList(INSTALLER_VISIT));
     @Getter
     private ScriptGenerator scriptGenerator;
-    private YmlResourcesParser ymlParser;
 
     public void init() throws IOException, SQLException {
-        URL configFileUrl = ApplicationConfiguration.class.getClassLoader().getResource("db_connection.yml");
-        if (configFileUrl == null) return;
-        File configFile = new File(configFileUrl.getFile());
-        dbConnectionProperties = DbConnectionPropertiesLoader.load(configFile);
 
-        Map<String, String> sheetNames = getMapFromRecources("sheet_names.yml");
+        dbConnectionProperties = DbConnectionPropertiesLoader.load(DB_CONNECTION);
+
+        Map<String, String> sheetNames = getMapFromRecources(SHEETS_NAME);
         for (Map.Entry <String, String> name : sheetNames.entrySet()) {
             typesBySheetNames.put(name.getKey(), ParametersType.parseType(name.getValue()));
             namesBySheetType.put(ParametersType.parseType(name.getValue()), name.getKey());
         }
 
-        Map<String, String> actions = getMapFromRecources("actions.yml");
+        Map<String, String> actions = getMapFromRecources(ACTIONS);
         for (Map.Entry <String, String> action : actions.entrySet()) {
             actionsMap.put(action.getKey(), Action.parseAction(action.getValue()));
         }
 
-        Map<String, String> steps = getMapFromRecources("messages.yml");
+        Map<String, String> steps = getMapFromRecources(MESSAGES);
         for (Map.Entry <String, String> step : steps.entrySet()) {
             messages.put(ApplicationStep.parseStep(step.getKey()), step.getValue());
         }
@@ -106,10 +103,9 @@ public class ApplicationConfiguration {
         if (connection != null) connection.close();
     }
 
-    private Map<String, String> getMapFromRecources(String recourceName) throws FileNotFoundException, YamlException {
-        InputStream inputStraem = getClass().getClassLoader().getResourceAsStream(recourceName);
-        if (inputStraem == null) return null;
-        InputStreamReader streamReader = new InputStreamReader(inputStraem);
+    private Map<String, String> getMapFromRecources(String recourceName) throws IOException {
+        URL url = getClass().getClassLoader().getResource(recourceName);
+        InputStreamReader streamReader = new InputStreamReader((InputStream) url.getContent(), Charset.forName(UTF_8_CHARSET));
         YamlReader reader = new YamlReader(streamReader);
         return (Map<String, String>) reader.read();
     }

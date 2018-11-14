@@ -49,9 +49,17 @@ public interface Constants {
         String CHOOSER_TITLE = "Выберете файл";
         String XML_EXTENSION = "*.xml";
         String XLSX_EXTENSION = "*.xlsx";
+        String UTF_8_CHARSET = "utf-8";
     }
 
     interface DataBaseConstants {
         String DRIVER_CLASS_NAME = "oracle.jdbc.driver.OracleDriver";
+    }
+
+    interface ResourceFilesNames {
+        String DB_CONNECTION = "db_connection.yml";
+        String SHEETS_NAME = "sheet_names.yml";
+        String ACTIONS = "actions.yml";
+        String MESSAGES = "messages.yml";
     }
 }
