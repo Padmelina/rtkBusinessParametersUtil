@@ -1,0 +1,8 @@
+'FileParsingMessage' : 'Идёт разбор файла...'
+'FileCorrectMessage' : 'Файл корректен. Нажмите кнопку "Загрузить файл" для дальнейшей работы.'
+'FileCheckingMessage' : 'Идёт проверка данных...'
+'ScriptMessage' : 'Идёт формирование скриптов...'
+'StatisticSuccessMessage' : 'Успешно обработанных записей: {0, number}'
+'StatisticErrorsMessage' : 'Неупешно обработанных записей: {0, number}'
+'CheckEndedMessage' : 'Проверка завершена!'
+'TitleMessage' : 'Утилита автоматизированной настройки бизнес-параметров'

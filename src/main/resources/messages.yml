@@ -1,7 +1,0 @@
-'FileParsingStep' : 'Идёт разбор файла...'
-'FileCorrectStep' : 'Файл корректен. Нажмите кнопку "Загрузить файл" для дальнейшей работы.'
-'FileCheckingStep' : 'Идёт проверка данных...'
-'ScriptStep' : 'Идёт формирование скриптов...'
-'StatisticSuccessStep' : 'Успешно обработанных записей: {0, number}'
-'StatisticErrorsStep' : 'Неупешно обработанных записей: {0, number}'
-'CheckEnded' : 'Проверка завершена!'

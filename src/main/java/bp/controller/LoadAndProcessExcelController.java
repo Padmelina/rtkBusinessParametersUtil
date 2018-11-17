@@ -14,14 +14,13 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static bp.model.ApplicationStep.*;
+import static bp.model.FormMessages.*;
 import static bp.model.CheckError.Ok;
 import static bp.model.ParametersType.INSTALLER_VISIT;
 
@@ -55,18 +54,18 @@ public class LoadAndProcessExcelController {
     @FXML
     private void onChooseButtonAction(ActionEvent event) throws IOException, InvalidFormatException {
         bpFile = configuration.getFileChooser().showOpenDialog(new Stage());
-        messageArea.setText(configuration.getMessages().get(FileParsingStep));
+        messageArea.setText(configuration.getMessages().get(FileParsingMessage));
         if (bpFile != null) filePathField.setText(bpFile.getAbsolutePath());
         allSheets = configuration.getFileParser().parseFile(bpFile);
         if (allSheets == null || allSheets.size() == 0) return;
-        messageArea.setText(configuration.getMessages().get(FileCorrectStep));
+        messageArea.setText(configuration.getMessages().get(FileCorrectMessage));
         processFileButton.setDisable(false);
         chooseFileButton.setDisable(true);
     }
 
     @FXML
     private void onProcessButtonAction(ActionEvent event) throws IOException {
-        messageArea.setText(configuration.getMessages().get(FileCheckingStep));
+        messageArea.setText(configuration.getMessages().get(FileCheckingMessage));
         processFileButton.setDisable(true);
         for (Map.Entry <ParametersType, List<AbstractEntity>> entryMap : allSheets.entrySet()) {
             switch (entryMap.getKey()) {
@@ -87,18 +86,18 @@ public class LoadAndProcessExcelController {
                     break;
             }
         }
-        messageArea.setText(configuration.getMessages().get(ScriptStep));
+        messageArea.setText(configuration.getMessages().get(ScriptMessage));
         configuration.getScriptGenerator().generateScripts(validRows);
         generateResultStatistic();
         logButton.setDisable(false);
     }
 
     private void generateResultStatistic() {
-        messageArea.setText(configuration.getMessages().get(CheckEnded));
+        messageArea.setText(configuration.getMessages().get(CheckEndedMessage));
         for (ParametersType type : configuration.getCheckedTypes()) {
             messageArea.appendText('\n' + configuration.getNamesBySheetType().get(type) + ": " + '\n');
-            messageArea.appendText(MessageFormat.format(configuration.getMessages().get(StatisticSuccessStep), validRows.get(type).size()) + '\n');
-            messageArea.appendText(MessageFormat.format(configuration.getMessages().get(StatisticErrorsStep), invalidRows.get(type).size()));
+            messageArea.appendText(MessageFormat.format(configuration.getMessages().get(StatisticSuccessMessage), validRows.get(type).size()) + '\n');
+            messageArea.appendText(MessageFormat.format(configuration.getMessages().get(StatisticErrorsMessage), invalidRows.get(type).size()));
 
         }
     }

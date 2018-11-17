@@ -4,7 +4,7 @@ import bp.checker.EntityChecker;
 import bp.database.DbConnectionProperties;
 import bp.database.DbConnectionPropertiesLoader;
 import bp.model.Action;
-import bp.model.ApplicationStep;
+import bp.model.FormMessages;
 import bp.model.ParametersType;
 import bp.parser.FileParser;
 import bp.query.ScriptGenerator;
@@ -44,7 +44,7 @@ public class ApplicationConfiguration {
     @Getter
     private Map<String, Action> actionsMap = new HashMap<>();
     @Getter
-    private Map<ApplicationStep, String> messages = new HashMap<>();
+    private Map<FormMessages, String> messages = new HashMap<>();
     @Getter
     private FileParser fileParser;
     private FileChooser fileChooser;
@@ -70,7 +70,7 @@ public class ApplicationConfiguration {
 
         Map<String, String> steps = getMapFromRecources(MESSAGES);
         for (Map.Entry <String, String> step : steps.entrySet()) {
-            messages.put(ApplicationStep.parseStep(step.getKey()), step.getValue());
+            messages.put(FormMessages.parseMessage(step.getKey()), step.getValue());
         }
 
         hikariConfig = new HikariConfig();

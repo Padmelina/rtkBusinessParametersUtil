@@ -60,6 +60,6 @@ public interface Constants {
         String DB_CONNECTION = "db_connection.yml";
         String SHEETS_NAME = "sheet_names.yml";
         String ACTIONS = "actions.yml";
-        String MESSAGES = "messages.yml";
+        String MESSAGES = "form_messages.yml";
     }
 }

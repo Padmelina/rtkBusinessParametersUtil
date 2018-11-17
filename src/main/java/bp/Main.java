@@ -8,6 +8,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import static bp.model.FormMessages.TitleMessage;
+
 public class Main extends Application {
     private ApplicationConfiguration configuration = new ApplicationConfiguration();
     private LoadAndProcessExcelController mainController;
@@ -19,7 +21,7 @@ public class Main extends Application {
         mainController = new LoadAndProcessExcelController(configuration);
         loader.setController(mainController);
         Parent root = loader.load();
-        primaryStage.setTitle("Утилита автоматизированной настройки бизнес-параметров");
+        primaryStage.setTitle(configuration.getMessages().get(TitleMessage));
         Scene scene = new Scene(root, 600, 400);
         scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         primaryStage.setScene(scene);
