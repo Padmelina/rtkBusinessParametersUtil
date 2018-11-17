@@ -1,7 +1,7 @@
 package bp.checker;
 
-import bp.checker.checkers.AbstractDbChecker;
-import bp.checker.checkers.implementations.*;
+import bp.checker.dbcheckers.AbstractDbChecker;
+import bp.checker.dbcheckers.implementations.*;
 import bp.model.CheckError;
 import bp.model.ParametersType;
 import bp.model.entity.AbstractEntity;
@@ -9,6 +9,9 @@ import bp.model.entity.InstallerVisit;
 
 import java.sql.Connection;
 
+import static bp.model.Action.ADD;
+import static bp.model.Action.DELETE;
+import static bp.model.Action.UNKNOWN;
 import static bp.model.CheckError.*;
 import static bp.checker.entity.factory.DbEntitiesFactory.*;
 
@@ -38,7 +41,11 @@ public class EntityChecker {
         if (!checker.check(getMrfFromInstallerVisit(visit))) return IncorrectTerritoryId;
         checker = new ProductChecker(connection);
         if (!checker.check(getProductFromInstallerVisit(visit))) return IncorrectProduct;
+        if (UNKNOWN.equals(visit.getAction())) return IncorrectAction;
+        checker = new XCWfmMapChecker(connection);
+        boolean isExists = checker.check(visit);
+        if (ADD.equals(visit.getAction()) && isExists) return RecordAlreadyExists;
+        if (DELETE.equals(visit.getAction()) && !isExists) return RecordNotExists;
         return Ok;
     }
-
 }

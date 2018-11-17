@@ -2,7 +2,8 @@ package bp.model;
 
 public enum Action {
     ADD("add"),
-    DELETE("delete");
+    DELETE("delete"),
+    UNKNOWN("unknown");
 
     private String action;
 
@@ -17,6 +18,6 @@ public enum Action {
     public static Action parseAction(String str) {
         if (ADD.action.equals(str)) return ADD;
         if (DELETE.action.equals(str)) return DELETE;
-        return null;
+        return UNKNOWN;
     }
 }

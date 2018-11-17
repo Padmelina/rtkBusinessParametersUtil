@@ -6,7 +6,9 @@ public enum CheckError {
     IncorrectCaseTypes ("Incorrect case types mapping"),
     IncorrectTerritoryId ("Incorrect MRF ID"),
     IncorrectProduct ("Incorrect product"),
-    RecordIsAlreadyExists ("Record is already exists in target table");
+    IncorrectAction ("Incorrect action"),
+    RecordAlreadyExists ("Adding record is already exists in target table"),
+    RecordNotExists ("Deleting record does not exist in target table");
 
     CheckError(String errorText) {
         this.errorText = errorText;

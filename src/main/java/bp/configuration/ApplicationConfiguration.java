@@ -7,7 +7,7 @@ import bp.model.Action;
 import bp.model.FormMessages;
 import bp.model.ParametersType;
 import bp.parser.FileParser;
-import bp.query.ScriptGenerator;
+import bp.utils.FileNamesGenerator;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -44,14 +44,16 @@ public class ApplicationConfiguration {
     @Getter
     private Map<String, Action> actionsMap = new HashMap<>();
     @Getter
+    private Map<Action, String> actionsNamesMap = new HashMap<>();
+    @Getter
     private Map<FormMessages, String> messages = new HashMap<>();
     @Getter
     private FileParser fileParser;
-    private FileChooser fileChooser;
+    @Getter
+    private FileNamesGenerator fileNamesGenerator;
     @Getter
     private List<ParametersType> checkedTypes = new ArrayList<>(Arrays.asList(INSTALLER_VISIT));
-    @Getter
-    private ScriptGenerator scriptGenerator;
+    private FileChooser fileChooser;
 
     public void init() throws IOException, SQLException {
 
@@ -66,12 +68,15 @@ public class ApplicationConfiguration {
         Map<String, String> actions = getMapFromRecources(ACTIONS);
         for (Map.Entry <String, String> action : actions.entrySet()) {
             actionsMap.put(action.getKey(), Action.parseAction(action.getValue()));
+            actionsNamesMap.put(Action.parseAction(action.getValue()), action.getKey());
         }
 
         Map<String, String> steps = getMapFromRecources(MESSAGES);
         for (Map.Entry <String, String> step : steps.entrySet()) {
             messages.put(FormMessages.parseMessage(step.getKey()), step.getValue());
         }
+
+        fileNamesGenerator = new FileNamesGenerator(actionsNamesMap, namesBySheetType);
 
         hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(dbConnectionProperties.getUrl());
@@ -85,8 +90,6 @@ public class ApplicationConfiguration {
         fileParser = new FileParser(actionsMap, typesBySheetNames);
 
         entityChecker = new EntityChecker(connection);
-
-        scriptGenerator = new ScriptGenerator(connection);
     }
 
     public FileChooser getFileChooser() {

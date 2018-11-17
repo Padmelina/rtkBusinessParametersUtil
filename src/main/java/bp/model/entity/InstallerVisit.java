@@ -1,11 +1,12 @@
 package bp.model.entity;
 
+import bp.checker.entity.AbtractDbCheckEntity;
 import bp.model.Action;
 import lombok.Builder;
 import lombok.Getter;
 
 @Builder
-public class InstallerVisit extends AbstractEntity {
+public class InstallerVisit extends AbstractEntity implements AbtractDbCheckEntity {
     @Getter
     private String technology;
     @Getter
