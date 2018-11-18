@@ -54,8 +54,13 @@ public class LoadAndProcessExcelController {
     @FXML
     private void onChooseButtonAction(ActionEvent event) throws IOException, InvalidFormatException {
         bpFile = configuration.getFileChooser().showOpenDialog(new Stage());
-        messageArea.setText(configuration.getMessages().get(FileParsingMessage));
-        if (bpFile != null) filePathField.setText(bpFile.getAbsolutePath());
+
+        filePathField.clear();
+        if (bpFile == null) {
+            messageArea.setText(configuration.getMessages().get(NoFileMessage));
+            return;
+        }
+        filePathField.setText(bpFile.getAbsolutePath());
         allSheets = configuration.getFileParser().parseFile(bpFile);
         if (allSheets == null || allSheets.size() == 0) return;
         messageArea.setText(configuration.getMessages().get(FileCorrectMessage));
@@ -87,7 +92,6 @@ public class LoadAndProcessExcelController {
             }
         }
         messageArea.setText(configuration.getMessages().get(ScriptMessage));
-        configuration.getScriptGenerator().generateScripts(validRows);
         generateResultStatistic();
         logButton.setDisable(false);
     }

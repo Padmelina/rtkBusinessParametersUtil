@@ -1,3 +1,4 @@
+'NoFileMessage' : 'Выберите файл!'
 'FileParsingMessage' : 'Идёт разбор файла...'
 'FileCorrectMessage' : 'Файл корректен. Нажмите кнопку "Загрузить файл" для дальнейшей работы.'
 'FileCheckingMessage' : 'Идёт проверка данных...'

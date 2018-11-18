@@ -1,6 +1,7 @@
 package bp.model;
 
 public enum FormMessages {
+    NoFileMessage("NoFileMessage"),
     FileParsingMessage("FileParsingMessage"),
     FileCorrectMessage("FileCorrectMessage"),
     FileCheckingMessage("FileCheckingMessage"),
@@ -22,6 +23,7 @@ public enum FormMessages {
 
     public static FormMessages parseMessage(String name) {
         if (FileParsingMessage.MessageName.equals(name)) return FileParsingMessage;
+        if (NoFileMessage.MessageName.equals(name)) return NoFileMessage;
         if (FileCorrectMessage.MessageName.equals(name)) return FileCorrectMessage;
         if (FileCheckingMessage.MessageName.equals(name)) return FileCheckingMessage;
         if (ScriptMessage.MessageName.equals(name)) return ScriptMessage;
