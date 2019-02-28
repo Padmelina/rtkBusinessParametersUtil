@@ -1,6 +1,7 @@
 package bp.utils;
 
 import bp.model.Action;
+import bp.model.FileNames;
 import bp.model.ParametersType;
 
 import java.text.Format;
@@ -18,12 +19,27 @@ public class FileNamesGenerator {
         this.namesBySheetType = namesBySheetType;
     }
 
-    public String generateFileName(ParametersType type, Action action) {
+    public FileNames generateFileName(ParametersType type, Action action) {
         Date date = new Date();
         Format formatter = new SimpleDateFormat("dd_MM_yyyy_HH_mm");
-        return  System.getProperty("user.dir") + "/" + actionsNamesMap.get(action) + "_"
+        String main = System.getProperty("user.dir") + "/" + actionsNamesMap.get(action) + "_"
                 + namesBySheetType.get(type).replace(' ', '_') + "_"
                 + formatter.format(date)
                 + ".sql";
+        String revert = System.getProperty("user.dir") + "/" + actionsNamesMap.get(Action.REVERT) + "_"
+                + actionsNamesMap.get(action) + "_"
+                + namesBySheetType.get(type).replace(' ', '_') + "_"
+                + formatter.format(date)
+                + ".sql";
+        return  new FileNames(main, revert);
+    }
+
+    public String generateLogFileName() {
+        Date date = new Date();
+        Format formatter = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss");
+        return System.getProperty("user.dir") + "\\log\\"
+                + "log" + "_"
+                + formatter.format(date)
+                + ".csv";
     }
 }

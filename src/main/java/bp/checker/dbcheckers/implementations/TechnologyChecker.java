@@ -7,6 +7,7 @@ import org.jooq.Result;
 import org.jooq.impl.DSL;
 
 import java.sql.Connection;
+import java.util.Map;
 
 import static bp.model.Constants.FieldsName.X_NAME_TECHN;
 import static bp.model.Constants.TableNames.DUAL;
@@ -15,8 +16,8 @@ import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
 public class TechnologyChecker extends AbstractDbChecker <StringField> {
-    public TechnologyChecker(Connection connection) {
-        super(connection);
+    public TechnologyChecker(Connection connection, Map<String, String> constants) {
+        super(connection, constants);
         this.table += TECHNOLOGY;
     }
 

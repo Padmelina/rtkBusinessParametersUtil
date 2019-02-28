@@ -4,9 +4,11 @@ import bp.checker.EntityChecker;
 import bp.database.DbConnectionProperties;
 import bp.database.DbConnectionPropertiesLoader;
 import bp.model.Action;
+import bp.model.CheckError;
 import bp.model.FormMessages;
 import bp.model.ParametersType;
 import bp.parser.FileParser;
+import bp.query.QueryFileGenerator;
 import bp.utils.FileNamesGenerator;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import com.zaxxer.hikari.HikariConfig;
@@ -24,6 +26,7 @@ import java.util.*;
 import static bp.model.Constants.DataBaseConstants.DRIVER_CLASS_NAME;
 import static bp.model.Constants.FileChooserConstants.*;
 import static bp.model.Constants.ResourceFilesNames.*;
+import static bp.model.FormMessages.ChooseFileMessage;
 import static bp.model.ParametersType.INSTALLER_VISIT;
 
 public class ApplicationConfiguration {
@@ -50,9 +53,14 @@ public class ApplicationConfiguration {
     @Getter
     private FileParser fileParser;
     @Getter
-    private FileNamesGenerator fileNamesGenerator;
-    @Getter
     private List<ParametersType> checkedTypes = new ArrayList<>(Arrays.asList(INSTALLER_VISIT));
+    @Getter
+    private QueryFileGenerator queryGenerator;
+    @Getter
+    private Map<String, String> sqlConstants = new HashMap<>();
+    @Getter
+    private Map<CheckError, String> errorText = new HashMap<>();
+    private FileNamesGenerator fileNamesGenerator;
     private FileChooser fileChooser;
 
     public void init() throws IOException, SQLException {
@@ -62,7 +70,11 @@ public class ApplicationConfiguration {
         Map<String, String> sheetNames = getMapFromRecources(SHEETS_NAME);
         for (Map.Entry <String, String> name : sheetNames.entrySet()) {
             typesBySheetNames.put(name.getKey(), ParametersType.parseType(name.getValue()));
-            namesBySheetType.put(ParametersType.parseType(name.getValue()), name.getKey());
+        }
+
+        Map<String, String> queryNames = getMapFromRecources(QUERIES_NAMES);
+        for (Map.Entry <String, String> name : queryNames.entrySet()) {
+            namesBySheetType.put(ParametersType.parseType(name.getKey()), name.getValue());
         }
 
         Map<String, String> actions = getMapFromRecources(ACTIONS);
@@ -76,7 +88,15 @@ public class ApplicationConfiguration {
             messages.put(FormMessages.parseMessage(step.getKey()), step.getValue());
         }
 
+        Map<String, String> errors = getMapFromRecources(ERROR_MAPPING);
+        for (Map.Entry <String, String> error : errors.entrySet()) {
+            errorText.put(CheckError.parseError(error.getKey()), error.getValue());
+        }
+
+        sqlConstants = getMapFromRecources(SQL_CONSTANTS);
+
         fileNamesGenerator = new FileNamesGenerator(actionsNamesMap, namesBySheetType);
+        queryGenerator = new QueryFileGenerator(fileNamesGenerator, sqlConstants, errorText);
 
         hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(dbConnectionProperties.getUrl());
@@ -89,13 +109,14 @@ public class ApplicationConfiguration {
 
         fileParser = new FileParser(actionsMap, typesBySheetNames);
 
-        entityChecker = new EntityChecker(connection);
+        entityChecker = new EntityChecker(connection, sqlConstants);
     }
 
     public FileChooser getFileChooser() {
         if (fileChooser == null) {
             fileChooser = new FileChooser();
-            fileChooser.setTitle(CHOOSER_TITLE);
+            fileChooser.setTitle(messages.get(ChooseFileMessage));
+            fileChooser.setInitialDirectory(new File(System.getProperty("user.dir")));
             fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter(XLSX_FILES, XLSX_EXTENSION));
             fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter(XML_FILES, XML_EXTENSION));
         }

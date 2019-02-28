@@ -2,39 +2,120 @@ package bp.checker.dbcheckers.implementations;
 
 import bp.checker.dbcheckers.AbstractDbChecker;
 import bp.model.entity.InstallerVisit;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Result;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 
 import java.sql.Connection;
-/**
- * TODO:
- SELECT count(*) FROM DUAL WHERE EXISTS (SELECT wfm.OBJID FROM SA.TABLE_X_C_WFM_MAP wfm
- INNER JOIN TABLE_X_TYPE_TECHN tech ON wfm.X_TECH_FAMILY = tech.X_NAME_TECHN AND tech.X_NAME_TECHN = 'FTTx'
- INNER JOIN TABLE_PART_NUM pn ON wfm.X_C_WFM_MAP2PART_NUM = pn.OBJID AND pn.PART_NUMBER = 'Интернет по Ethernet' AND pn.FAMILY <> 'ККФУ'
- INNER JOIN TABLE_TERRITORY ter ON wfm.X_C_WFM_MAP2TERRITORY = ter.OBJID AND ter.TERR_ID = 'SIB'
- INNER JOIN TABLE_HGBST_ELM type3 ON wfm.X_C_WFM_MAP2C_TYPE_LVL3 = type3.OBJID AND type3.state != 'Inactive'
- INNER JOIN MTM_HGBST_ELM0_HGBST_SHOW1 m5 ON type3.OBJID = m5.HGBST_ELM2HGBST_SHOW
- INNER JOIN TABLE_HGBST_SHOW show3 ON show3.OBJID = m5.HGBST_SHOW2HGBST_ELM
- INNER JOIN MTM_HGBST_ELM0_HGBST_SHOW1 m4 ON show3.objid = m4.hgbst_show2hgbst_elm AND show3.objid = m4.hgbst_show2hgbst_elm
- INNER JOIN TABLE_HGBST_ELM type2 ON type2.objid = m4.hgbst_elm2hgbst_show AND type3.objid != type2.objid AND type2.state != 'Inactive'
- INNER JOIN MTM_HGBST_ELM0_HGBST_SHOW1 m3 ON type2.objid = m3.hgbst_elm2hgbst_show
- INNER JOIN TABLE_HGBST_SHOW show2 ON show2.objid = m3.hgbst_show2hgbst_elm
- INNER JOIN MTM_HGBST_ELM0_HGBST_SHOW1 m2 ON show2.objid = m2.hgbst_show2hgbst_elm AND show3.objid != show2.objid
- INNER JOIN table_hgbst_elm type1 ON type1.objid = m2.hgbst_elm2hgbst_show AND type1.state != 'Inactive'
- INNER JOIN mtm_hgbst_elm0_hgbst_show1 m1 ON type1.objid = m1.hgbst_elm2hgbst_show
- INNER JOIN table_hgbst_show show1 ON show1.objid = m1.hgbst_show2hgbst_elm AND show2.objid != show1.objid
- INNER JOIN table_hgbst_lst list ON show1.objid = list.hgbst_lst2hgbst_show AND list.title = 'CASE_TYPE'
- WHERE type1.title = 'Техподдержка' AND type2.title = 'Сервис.обслуж-е клиентского оборудования' AND type3.title = 'Подключение клиентского оборудования'); */
+import java.util.Map;
 
-import static bp.model.Constants.TableNames.X_C_WFM_MAP;
+import static bp.model.Constants.FieldsName.*;
+import static bp.model.Constants.SqlQueryConstants.CaseTypeList;
+import static bp.model.Constants.SqlQueryConstants.InactiveState;
+import static bp.model.Constants.SqlQueryConstants.KKFU;
+import static bp.model.Constants.TableNames.*;
+import static org.jooq.impl.DSL.table;
 
 public class XCWfmMapChecker extends AbstractDbChecker<InstallerVisit> {
 
-    public XCWfmMapChecker(Connection connection) {
-        super(connection);
+    public XCWfmMapChecker(Connection connection, Map<String, String> constants) {
+        super(connection, constants);
         table += X_C_WFM_MAP;
     }
 
     @Override
     public boolean check(InstallerVisit visit) {
-        return false;
+        Table<Record> wfm = table(table).as("wfm");
+        Table<Record> part = table(SA_TABLE + PART_NUM).as("part");
+        Table<Record> terr = table(SA_TABLE + TERRITORY).as("terr");
+        Table<Record> tehn = table(SA_TABLE + TECHNOLOGY).as("tehn");
+        Table<Record> list = table(SA_TABLE + HGBST_LST).as("list");
+        Table<Record> show1 = table(SA_TABLE + HGBST_SHOW).as("show1");
+        Table<Record> show2 = table(SA_TABLE + HGBST_SHOW).as("show2");
+        Table<Record> show3 = table(SA_TABLE + HGBST_SHOW).as("show3");
+        Table<Record> type1 = table(SA_TABLE + HGBST_ELM).as("type1");
+        Table<Record> type2 = table(SA_TABLE + HGBST_ELM).as("type2");
+        Table<Record> type3 = table(SA_TABLE + HGBST_ELM).as("type3");
+        Table<Record> m1 = table(MTM_HGBST_ELM0_HGBST_SHOW1).as("m1");
+        Table<Record> m2 = table(MTM_HGBST_ELM0_HGBST_SHOW1).as("m2");
+        Table<Record> m3 = table(MTM_HGBST_ELM0_HGBST_SHOW1).as("m3");
+        Table<Record> m4 = table(MTM_HGBST_ELM0_HGBST_SHOW1).as("m4");
+        Table<Record> m5 = table(MTM_HGBST_ELM0_HGBST_SHOW1).as("m5");
+
+        Result<Record1<Integer>> sqlResult = DSL.using(connection)
+                .selectCount()
+                .from(DUAL)
+                .whereExists(DSL.using(connection)
+                        .select(DSL.field(DSL.name(DSL.quotedName("wfm"), DSL.unquotedName(OBJID))))
+                        .from(wfm)
+                        .innerJoin(tehn)
+                                .on(DSL.field(DSL.name(DSL.quotedName("wfm"), DSL.unquotedName(X_TECH_FAMILY)), String.class)
+                                    .eq(DSL.field(DSL.name(DSL.quotedName("tehn"), DSL.unquotedName(X_NAME_TECHN)), String.class)))
+                                .and(DSL.field(DSL.name(DSL.quotedName("tehn"), DSL.unquotedName(X_NAME_TECHN)), String.class).eq(visit.getTechnology()))
+                        .innerJoin(part)
+                                .on(DSL.field(DSL.name(DSL.quotedName("wfm"), DSL.unquotedName(X_C_WFM_MAP2PART_NUM)), String.class)
+                                    .eq(DSL.field(DSL.name(DSL.quotedName("part"), DSL.unquotedName(OBJID)), String.class)))
+                                .and(DSL.field(DSL.name(DSL.quotedName("part"), DSL.unquotedName(PART_NUMBER)), String.class).eq(visit.getPartNum()))
+                                .and(DSL.field(DSL.name(DSL.quotedName("part"), DSL.unquotedName(FAMILY)), String.class).notEqual(constants.get(KKFU)))
+                        .innerJoin(terr)
+                                .on(DSL.field(DSL.name(DSL.quotedName("wfm"), DSL.unquotedName(X_C_WFM_MAP2TERRITORY)), String.class)
+                                    .eq(DSL.field(DSL.name(DSL.quotedName("terr"), DSL.unquotedName(OBJID)), String.class)))
+                                .and(DSL.field(DSL.name(DSL.quotedName("terr"), DSL.unquotedName(TERR_ID)), String.class).eq(visit.getMrfId()))
+                        .innerJoin(type3)
+                                .on(DSL.field(DSL.name(DSL.quotedName("wfm"), DSL.unquotedName(X_C_WFM_MAP2C_TYPE_LVL3)), String.class)
+                                    .eq(DSL.field(DSL.name(DSL.quotedName("type3"), DSL.unquotedName(OBJID)), String.class)))
+                                .and(DSL.field(DSL.name(DSL.quotedName("type3"), DSL.unquotedName(STATE)), String.class).notEqual(InactiveState))
+                        .innerJoin(m5)
+                                .on(DSL.field(DSL.name(DSL.quotedName("type3"), DSL.unquotedName(OBJID)), String.class)
+                                    .eq(DSL.field(DSL.name(DSL.quotedName("m5"), DSL.unquotedName(HGBST_ELM2HGBST_SHOW)), String.class)))
+                        .innerJoin(show3)
+                                .on(DSL.field(DSL.name(DSL.quotedName("show3"), DSL.unquotedName(OBJID)), String.class)
+                                    .eq(DSL.field(DSL.name(DSL.quotedName("m5"), DSL.unquotedName(HGBST_SHOW2HGBST_ELM)), String.class)))
+                        .innerJoin(m4)
+                                .on(DSL.field(DSL.name(DSL.quotedName("show3"), DSL.unquotedName(OBJID)), String.class)
+                                    .eq(DSL.field(DSL.name(DSL.quotedName("m4"), DSL.unquotedName(HGBST_SHOW2HGBST_ELM)), String.class)))
+                        .innerJoin(type2)
+                                .on(DSL.field(DSL.name(DSL.quotedName("type2"), DSL.unquotedName(OBJID)), String.class)
+                                    .eq(DSL.field(DSL.name(DSL.quotedName("m4"), DSL.unquotedName(HGBST_ELM2HGBST_SHOW)), String.class)))
+                                .and(DSL.field(DSL.name(DSL.quotedName("type3"), DSL.unquotedName(OBJID)), String.class)
+                                     .notEqual(DSL.field(DSL.name(DSL.quotedName("type2"), DSL.unquotedName(OBJID)), String.class)))
+                                .and(DSL.field(DSL.name(DSL.quotedName("type2"), DSL.unquotedName(STATE)), String.class).notEqual(InactiveState))
+                        .innerJoin(m3)
+                                .on(DSL.field(DSL.name(DSL.quotedName("type2"), DSL.unquotedName(OBJID)), String.class)
+                                    .eq(DSL.field(DSL.name(DSL.quotedName("m3"), DSL.unquotedName(HGBST_ELM2HGBST_SHOW)), String.class)))
+                        .innerJoin(show2)
+                                .on(DSL.field(DSL.name(DSL.quotedName("show2"), DSL.unquotedName(OBJID)), String.class)
+                                        .eq(DSL.field(DSL.name(DSL.quotedName("m3"), DSL.unquotedName(HGBST_SHOW2HGBST_ELM)), String.class)))
+                        .innerJoin(m2)
+                                .on(DSL.field(DSL.name(DSL.quotedName("show2"), DSL.unquotedName(OBJID)), String.class)
+                                        .eq(DSL.field(DSL.name(DSL.quotedName("m2"), DSL.unquotedName(HGBST_SHOW2HGBST_ELM)), String.class)))
+                                .and(DSL.field(DSL.name(DSL.quotedName("show3"), DSL.unquotedName(OBJID)), String.class)
+                                        .notEqual(DSL.field(DSL.name(DSL.quotedName("show2"), DSL.unquotedName(OBJID)), String.class)))
+                        .innerJoin(type1)
+                                .on(DSL.field(DSL.name(DSL.quotedName("type1"), DSL.unquotedName(OBJID)), String.class)
+                                        .eq(DSL.field(DSL.name(DSL.quotedName("m2"), DSL.unquotedName(HGBST_ELM2HGBST_SHOW)), String.class)))
+                                .and(DSL.field(DSL.name(DSL.quotedName("type1"), DSL.unquotedName(STATE)), String.class).notEqual(InactiveState))
+                        .innerJoin(m1)
+                                .on(DSL.field(DSL.name(DSL.quotedName("type1"), DSL.unquotedName(OBJID)), String.class)
+                                        .eq(DSL.field(DSL.name(DSL.quotedName("m1"), DSL.unquotedName(HGBST_ELM2HGBST_SHOW)), String.class)))
+                        .innerJoin(show1)
+                                .on(DSL.field(DSL.name(DSL.quotedName("show1"), DSL.unquotedName(OBJID)), String.class)
+                                        .eq(DSL.field(DSL.name(DSL.quotedName("m1"), DSL.unquotedName(HGBST_SHOW2HGBST_ELM)), String.class)))
+                                .and(DSL.field(DSL.name(DSL.quotedName("show2"), DSL.unquotedName(OBJID)), String.class)
+                                        .notEqual(DSL.field(DSL.name(DSL.quotedName("show1"), DSL.unquotedName(OBJID)), String.class)))
+                        .innerJoin(list)
+                                .on(DSL.field(DSL.name(DSL.quotedName("show1"), DSL.unquotedName(OBJID)), String.class)
+                                        .eq(DSL.field(DSL.name(DSL.quotedName("list"), DSL.unquotedName(HGBST_LST2HGBST_SHOW)), String.class)))
+                                .and(DSL.field(DSL.name(DSL.quotedName("list"), DSL.unquotedName(TITLE)), String.class).eq(CaseTypeList))
+                        .where(DSL.field(DSL.name(DSL.quotedName("type1"), DSL.unquotedName(TITLE)), String.class)
+                                .eq(visit.getTypeOne()))
+                            .and(DSL.field(DSL.name(DSL.quotedName("type2"), DSL.unquotedName(TITLE)), String.class)
+                                .eq(visit.getTypeTwo()))
+                            .and(DSL.field(DSL.name(DSL.quotedName("type3"), DSL.unquotedName(TITLE)), String.class)
+                                .eq(visit.getTypeThree())))
+                .fetch();
+        return sqlResult != null && sqlResult.size() == 1 && 1 == sqlResult.get(0).value1();
     }
 }

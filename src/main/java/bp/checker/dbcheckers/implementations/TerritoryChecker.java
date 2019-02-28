@@ -7,6 +7,7 @@ import org.jooq.Result;
 import org.jooq.impl.DSL;
 
 import java.sql.Connection;
+import java.util.Map;
 
 import static bp.model.Constants.FieldsName.TERR_ID;
 import static bp.model.Constants.TableNames.DUAL;
@@ -15,8 +16,8 @@ import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
 public class TerritoryChecker extends AbstractDbChecker <StringField> {
-    public TerritoryChecker(Connection connection) {
-        super(connection);
+    public TerritoryChecker(Connection connection, Map<String, String> constants) {
+        super(connection, constants);
         table += TERRITORY;
     }
 

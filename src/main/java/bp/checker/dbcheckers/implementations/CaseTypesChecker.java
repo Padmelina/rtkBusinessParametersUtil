@@ -9,6 +9,7 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 
 import java.sql.Connection;
+import java.util.Map;
 
 import static bp.model.Constants.FieldsName.*;
 import static bp.model.Constants.SqlQueryConstants.CaseTypeList;
@@ -17,8 +18,8 @@ import static bp.model.Constants.TableNames.*;
 import static org.jooq.impl.DSL.table;
 
 public class CaseTypesChecker extends AbstractDbChecker <CaseTypes> {
-    public CaseTypesChecker(Connection connection) {
-        super(connection);
+    public CaseTypesChecker(Connection connection, Map<String, String> constants) {
+        super(connection, constants);
         table += HGBST_ELM;
     }
 

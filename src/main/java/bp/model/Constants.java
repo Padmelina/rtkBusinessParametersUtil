@@ -3,6 +3,7 @@ package bp.model;
 public interface Constants {
     interface TableNames {
         String SA_TABLE = "sa.table_";
+        String SA_SCHEMA = "sa.";
         String TECHNOLOGY = "x_type_techn";
         String HGBST_ELM = "hgbst_elm";
         String HGBST_LST = "hgbst_lst";
@@ -28,16 +29,22 @@ public interface Constants {
         String STATE = "state";
         String TITLE = "title";
         String DEV = "dev";
+        String OBJ_NUM = "obj_num";
+        String TYPE_ID = "type_id";
+        String TYPE_NAME = "type_name";
         String X_TECH_FAMILY = "x_tech_family";
-        String X_C_WFM_MAP2C_TYPE_LVL3 = "x_c_wfm2c_type_lvl3";
-        String X_C_WFM_MAP2TERRITORY = "x_c_wfm_map2_territory";
+        String X_C_WFM_MAP2C_TYPE_LVL3 = "x_c_wfm_map2c_type_lvl3";
+        String X_C_WFM_MAP2TERRITORY = "x_c_wfm_map2territory";
         String X_C_WFM_MAP2PART_NUM = "x_c_wfm_map2part_num";
         String X_IS_ACTIVE = "x_is_active";
+        String TYPE1 = "TYPE1";
+        String TYPE2 = "TYPE2";
+        String TYPE3 = "TYPE3";
     }
 
 
     interface SqlQueryConstants {
-        String KKFU = "ККФУ";
+        String KKFU = "KKFU";
         String InactiveState = "Inactive";
         String CaseTypeList = "CASE_TYPE";
         String ActiveStatus = "1";
@@ -46,7 +53,6 @@ public interface Constants {
     interface FileChooserConstants {
         String XML_FILES = "XML Files";
         String XLSX_FILES = "XLSX Files";
-        String CHOOSER_TITLE = "Выберете файл";
         String XML_EXTENSION = "*.xml";
         String XLSX_EXTENSION = "*.xlsx";
         String UTF_8_CHARSET = "utf-8";
@@ -61,5 +67,44 @@ public interface Constants {
         String SHEETS_NAME = "sheet_names.yml";
         String ACTIONS = "actions.yml";
         String MESSAGES = "form_messages.yml";
+        String SQL_CONSTANTS = "sql_constants.yml";
+        String QUERIES_NAMES = "query_names.yml";
+        String ERROR_MAPPING = "error_mapping.yml";
     }
+
+    interface SqlKeyWords {
+        String DECLARE = "DECLARE";
+        String BEGIN = "BEGIN";
+        String TERMINAL_END = "END;";
+        String NUMBER = "NUMBER";
+        String COMMIT = "COMMIT;";
+        String INSERT_ALL = "INSERT ALL";
+        String TYPE = "TYPE";
+        String VARCHAR2 = "VARCHAR2({0, number})";
+        String IS_RECORD = "IS RECORD";
+        String IS_TABLE_OF = "IS TABLE OF";
+        String INDEX_BY = "INDEX BY";
+        String SELECT = "SELECT";
+        String INTO = "INTO";
+        String FROM = "FROM";
+        String WHERE = "WHERE";
+        String UPDATE = "UPDATE";
+        String SET = "SET";
+        String FOR_UPDATE = "FOR UPDATE";
+        String FOR = "FOR";
+        String IN = "IN";
+        String LOOP = "LOOP";
+        String AND = "AND";
+        String INNER_JOIN = "INNER JOIN";
+        String ON = "ON";
+        String VALUES = "VALUES";
+        String END_LOOP = "END LOOP;";
+        String DELETE = "DELETE";
+    }
+
+    interface CommonSqlQueries {
+        String SELECT_DUAL = "SELECT * FROM DUAL;";
+        String FROM_DUAL = "FROM DUAL;";
+    }
+
 }

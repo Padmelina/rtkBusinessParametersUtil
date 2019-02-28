@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.jooq.tools.StringUtils.isEmpty;
+
 public class InstallerVisitSheetParser extends AbstractSheetParser<InstallerVisit> {
     public InstallerVisitSheetParser(Map<String, Action> map) {
         super(map);
@@ -30,12 +32,12 @@ public class InstallerVisitSheetParser extends AbstractSheetParser<InstallerVisi
                 counter++;
             }
             InstallerVisit entity = InstallerVisit.builder()
-                    .technology(cells[0].getStringCellValue().trim())
-                    .typeOne(cells[1].getStringCellValue().trim())
-                    .typeTwo(cells[2].getStringCellValue().trim())
-                    .typeThree(cells[3].getStringCellValue().trim())
-                    .mrfId(cells[4].getStringCellValue().trim())
-                    .partNum(cells[5].getStringCellValue().trim())
+                    .technology(isEmpty(cells[0].getStringCellValue()) ? "" : cells[0].getStringCellValue().trim())
+                    .typeOne(isEmpty(cells[1].getStringCellValue()) ? "" : cells[1].getStringCellValue().trim())
+                    .typeTwo(isEmpty(cells[2].getStringCellValue()) ? "" : cells[2].getStringCellValue().trim())
+                    .typeThree(isEmpty(cells[3].getStringCellValue()) ? "" : cells[3].getStringCellValue().trim())
+                    .mrfId(isEmpty(cells[4].getStringCellValue()) ? "" : cells[4].getStringCellValue().trim())
+                    .partNum(isEmpty(cells[5].getStringCellValue()) ? "": cells[5].getStringCellValue().trim())
                     .action(actions.get(cells[6].getStringCellValue().trim()))
                     .build();
             sheetEntities.add(entity);
