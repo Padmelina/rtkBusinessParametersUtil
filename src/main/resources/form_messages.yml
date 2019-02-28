@@ -1,4 +1,5 @@
 'NoFileMessage' : 'Выберите файл!'
+'ChooseFileMessage' : 'Выберите файл'
 'FileParsingMessage' : 'Идёт разбор файла...'
 'FileCorrectMessage' : 'Файл корректен. Нажмите кнопку "Загрузить файл" для дальнейшей работы.'
 'FileCheckingMessage' : 'Идёт проверка данных...'
@@ -7,3 +8,4 @@
 'StatisticErrorsMessage' : 'Неупешно обработанных записей: {0, number}'
 'CheckEndedMessage' : 'Проверка завершена!'
 'TitleMessage' : 'Утилита автоматизированной настройки бизнес-параметров'
+'NoNeededSheetMessage' : 'В файле отсутствует лист Маппинг Бронирование!'

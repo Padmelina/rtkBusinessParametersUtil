@@ -53,7 +53,6 @@
         </rowConstraints>
          <children>
             <Button fx:id="processFileButton" disable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#onProcessButtonAction" prefHeight="25.0" prefWidth="120.0" text="Загрузить файл" />
-            <Button fx:id="logButton" disable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="120.0" text="Отчёт" GridPane.columnIndex="1" />
          </children>
       </GridPane>
    </children>

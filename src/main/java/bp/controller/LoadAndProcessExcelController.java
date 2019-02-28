@@ -94,6 +94,7 @@ public class LoadAndProcessExcelController {
         messageArea.setText(configuration.getMessages().get(ScriptMessage));
         generateResultStatistic();
         logButton.setDisable(false);
+        chooseFileButton.setDisable(false);
     }
 
     private void generateResultStatistic() {
@@ -102,7 +103,6 @@ public class LoadAndProcessExcelController {
             messageArea.appendText('\n' + configuration.getNamesBySheetType().get(type) + ": " + '\n');
             messageArea.appendText(MessageFormat.format(configuration.getMessages().get(StatisticSuccessMessage), validRows.get(type).size()) + '\n');
             messageArea.appendText(MessageFormat.format(configuration.getMessages().get(StatisticErrorsMessage), invalidRows.get(type).size()));
-
         }
     }
 }
