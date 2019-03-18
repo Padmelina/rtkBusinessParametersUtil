@@ -3,6 +3,7 @@ package bp.utils;
 import bp.model.Action;
 import bp.model.FileNames;
 import bp.model.ParametersType;
+import lombok.Getter;
 
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -10,8 +11,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import static bp.model.Action.CHECK;
+
 public class FileNamesGenerator {
     private Map<Action, String> actionsNamesMap = new HashMap<>();
+    @Getter
     private Map<ParametersType, String> namesBySheetType = new HashMap<>();
 
     public FileNamesGenerator(Map<Action, String> actionsNamesMap,  Map<ParametersType, String> namesBySheetType) {
@@ -31,7 +35,16 @@ public class FileNamesGenerator {
                 + namesBySheetType.get(type).replace(' ', '_') + "_"
                 + formatter.format(date)
                 + ".sql";
-        return  new FileNames(main, revert);
+        String checkMain = System.getProperty("user.dir") + "/" + actionsNamesMap.get(CHECK) + "_" + actionsNamesMap.get(action) + "_"
+                + namesBySheetType.get(type).replace(' ', '_') + "_"
+                + formatter.format(date)
+                + ".sql";
+        String checkRevert = System.getProperty("user.dir") + "/" + actionsNamesMap.get(CHECK) + "_" + actionsNamesMap.get(Action.REVERT) + "_"
+                + actionsNamesMap.get(action) + "_"
+                + namesBySheetType.get(type).replace(' ', '_') + "_"
+                + formatter.format(date)
+                + ".sql";
+        return  new FileNames(main, revert, checkMain, checkRevert);
     }
 
     public String generateLogFileName() {

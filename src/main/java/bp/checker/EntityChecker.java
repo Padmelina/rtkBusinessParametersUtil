@@ -6,6 +6,7 @@ import bp.model.CheckError;
 import bp.model.ParametersType;
 import bp.model.entity.AbstractEntity;
 import bp.model.entity.InstallerVisit;
+import bp.model.entity.OnlineTransfer;
 
 import java.sql.Connection;
 import java.util.Map;
@@ -30,6 +31,9 @@ public class EntityChecker {
         CheckError error = Ok;
         switch (type) {
             case INSTALLER_VISIT: error = checkInstallerVisit((InstallerVisit) row);
+            break;
+            case ONLINE_TRANSFER: error = checkOnlineTransfer((OnlineTransfer) row);
+            break;
         }
         return error;
     }
@@ -50,6 +54,25 @@ public class EntityChecker {
         boolean isExists = checker.check(visit);
         if (ADD.equals(visit.getAction()) && isExists) return RecordAlreadyExists;
         if (DELETE.equals(visit.getAction()) && !isExists) return RecordNotExists;
+        return Ok;
+    }
+
+    private CheckError checkOnlineTransfer(OnlineTransfer transfer) {
+        if (!transfer.validate()) return RecordContainsEmptyValues;
+        AbstractDbChecker checker;
+        checker = new TechnologyChecker(connection, constants);
+        if (!checker.check(getTehnologyFromOnlineTransfer(transfer))) return IncorrectTechnology;
+        checker = new CaseTypesChecker(connection, constants);
+        if (!checker.check(getCaseTypesFromOnlineTransfer(transfer))) return IncorrectCaseTypes;
+        checker = new TerritoryChecker(connection, constants);
+        if (!checker.check(getMrfFromOnlineTransfer(transfer))) return IncorrectTerritoryId;
+        checker = new ProductChecker(connection, constants);
+        if (!checker.check(getProductFromOnlineTransfer(transfer))) return IncorrectProduct;
+        if (UNKNOWN.equals(transfer.getAction())) return IncorrectAction;
+        checker = new XCLstMapChecker(connection, constants);
+        boolean isExists = checker.check(transfer);
+        if (ADD.equals(transfer.getAction()) && isExists) return RecordAlreadyExists;
+        if (DELETE.equals(transfer.getAction()) && !isExists) return RecordNotExists;
         return Ok;
     }
 }

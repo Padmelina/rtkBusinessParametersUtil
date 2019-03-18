@@ -5,22 +5,22 @@ import bp.model.FileNames;
 import bp.model.ParametersType;
 import bp.model.entity.AbstractEntity;
 import bp.model.entity.InstallerVisit;
+import bp.model.entity.OnlineTransfer;
 import bp.query.generator.QueryAbstractCreator;
 import bp.query.generator.implementations.InstallerVisitQueryCreator;
-import bp.statistic.AbstractLogGenerator;
-import bp.statistic.implementations.InstallerVisitLogGenerator;
+import bp.query.generator.implementations.OnlineTransferQueryCreator;
+import bp.statistic.LogGenerator;
 import bp.utils.FileNamesGenerator;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static bp.model.Action.ADD;
 import static bp.model.Action.DELETE;
 import static bp.model.ParametersType.INSTALLER_VISIT;
+import static bp.model.ParametersType.ONLINE_TRANSFER;
 
 /**
  * Class for generating files with queries
@@ -28,7 +28,7 @@ import static bp.model.ParametersType.INSTALLER_VISIT;
 public class QueryFileGenerator {
     private FileNamesGenerator fileNamesGenerator;
     private QueryAbstractCreator queryGenerator;
-    private AbstractLogGenerator logGenerator;
+    private LogGenerator logGenerator;
     private Map<CheckError, String> errorText;
     private Map<String, String> constants;
 
@@ -39,36 +39,59 @@ public class QueryFileGenerator {
     }
 
     public boolean generateScripts(Map<ParametersType, List<AbstractEntity>> validRows, Map<ParametersType, Map<AbstractEntity, CheckError>> results) throws IOException {
+        logGenerator = new LogGenerator(fileNamesGenerator, errorText);
         for (Map.Entry<ParametersType, List<AbstractEntity>> entry : validRows.entrySet()) {
             switch (entry.getKey()) {
                 case INSTALLER_VISIT:
-                    List <InstallerVisit> add = new ArrayList<>();
-                    List <InstallerVisit> delete = new ArrayList<>();
+                    List <InstallerVisit> addInstallerVisit = new ArrayList<>();
+                    List <InstallerVisit> deleteInstallerVisit = new ArrayList<>();
                     for (AbstractEntity visit : entry.getValue()) {
-                        if (ADD.equals(((InstallerVisit) visit).getAction())) add.add((InstallerVisit)visit);
-                        if (DELETE.equals(((InstallerVisit) visit).getAction())) delete.add((InstallerVisit)visit);
+                        if (ADD.equals(((InstallerVisit) visit).getAction())) addInstallerVisit.add((InstallerVisit)visit);
+                        if (DELETE.equals(((InstallerVisit) visit).getAction())) deleteInstallerVisit.add((InstallerVisit)visit);
                     }
 
                     FileNames addScripts = fileNamesGenerator.generateFileName(INSTALLER_VISIT, ADD);
                     FileNames deleteScripts = fileNamesGenerator.generateFileName(INSTALLER_VISIT, DELETE);
 
                     queryGenerator = new InstallerVisitQueryCreator(constants);
-                    queryGenerator.generateAdd(addScripts.getMainScriptName(), add);
-                    queryGenerator.generateDelete(addScripts.getRevertScriptName(), add);
+                    queryGenerator.generateAdd(addScripts.getMainScriptName(), addInstallerVisit);
+                    queryGenerator.generateCheckAdd(addScripts.getCheckMainScriptName(), addInstallerVisit);
+                    queryGenerator.generateDelete(addScripts.getRevertScriptName(), addInstallerVisit);
+                    queryGenerator.generateCheckDelete(addScripts.getCheckRevertScriptName(), addInstallerVisit);
 
-                    queryGenerator.generateDelete(deleteScripts.getMainScriptName(), delete);
-                    queryGenerator.generateAdd(deleteScripts.getRevertScriptName(), delete);
+                    queryGenerator.generateDelete(deleteScripts.getMainScriptName(), deleteInstallerVisit);
+                    queryGenerator.generateCheckDelete(deleteScripts.getCheckRevertScriptName(), deleteInstallerVisit);
+                    queryGenerator.generateAdd(deleteScripts.getRevertScriptName(), deleteInstallerVisit);
+                    queryGenerator.generateCheckAdd(deleteScripts.getCheckRevertScriptName(), deleteInstallerVisit);
 
-                    Map<InstallerVisit, CheckError> errors = new HashMap<>();
-
-                    for (Map.Entry<AbstractEntity, CheckError> result : results.get(INSTALLER_VISIT).entrySet()) {
-                        errors.put((InstallerVisit)result.getKey(), result.getValue());
+                    logGenerator.generateLogFile(INSTALLER_VISIT, results.get(INSTALLER_VISIT));
+                    break;
+                case ONLINE_TRANSFER:
+                    List <OnlineTransfer> addOnlineTransfer = new ArrayList<>();
+                    List <OnlineTransfer> deleteOnlineTransfer = new ArrayList<>();
+                    for (AbstractEntity transfer : entry.getValue()) {
+                        if (ADD.equals(((OnlineTransfer) transfer).getAction())) addOnlineTransfer.add((OnlineTransfer) transfer);
+                        if (DELETE.equals(((OnlineTransfer) transfer).getAction())) deleteOnlineTransfer.add((OnlineTransfer) transfer);
                     }
-                    logGenerator = new InstallerVisitLogGenerator(fileNamesGenerator, errorText);
-                    logGenerator.generateLogFile(errors);
+
+                    FileNames addTransferScripts = fileNamesGenerator.generateFileName(ONLINE_TRANSFER, ADD);
+                    FileNames deleteTransferScripts = fileNamesGenerator.generateFileName(ONLINE_TRANSFER, DELETE);
+
+                    queryGenerator = new OnlineTransferQueryCreator(constants);
+                    queryGenerator.generateAdd(addTransferScripts.getMainScriptName(), addOnlineTransfer);
+                    queryGenerator.generateCheckAdd(addTransferScripts.getCheckMainScriptName(), addOnlineTransfer);
+                    queryGenerator.generateDelete(addTransferScripts.getRevertScriptName(), addOnlineTransfer);
+                    queryGenerator.generateCheckDelete(addTransferScripts.getCheckRevertScriptName(), addOnlineTransfer);
+
+                    queryGenerator.generateDelete(deleteTransferScripts.getMainScriptName(), deleteOnlineTransfer);
+                    queryGenerator.generateCheckDelete(addTransferScripts.getCheckRevertScriptName(), deleteOnlineTransfer);
+                    queryGenerator.generateAdd(deleteTransferScripts.getRevertScriptName(), deleteOnlineTransfer);
+                    queryGenerator.generateCheckAdd(addTransferScripts.getCheckRevertScriptName(), deleteOnlineTransfer);
+                    logGenerator.generateLogFile(ONLINE_TRANSFER, results.get(ONLINE_TRANSFER));
                     break;
             }
         }
+        logGenerator.endLogFile();
         return false;
     }
 }

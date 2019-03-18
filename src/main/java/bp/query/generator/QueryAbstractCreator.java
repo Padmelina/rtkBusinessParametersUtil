@@ -15,4 +15,6 @@ public abstract class QueryAbstractCreator<T extends AbstractEntity> {
 
     public abstract boolean generateAdd(String fileName, List<T> records) throws IOException;
     public abstract boolean generateDelete(String fileName, List<T> records) throws IOException;
+    public abstract boolean generateCheckAdd(String fileName, List<T> records) throws IOException;
+    public abstract boolean generateCheckDelete(String fileName, List<T> records) throws IOException;
 }

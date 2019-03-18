@@ -8,4 +8,4 @@
 'StatisticErrorsMessage' : 'Неупешно обработанных записей: {0, number}'
 'CheckEndedMessage' : 'Проверка завершена!'
 'TitleMessage' : 'Утилита автоматизированной настройки бизнес-параметров'
-'NoNeededSheetMessage' : 'В файле отсутствует лист Маппинг Бронирование!'
+'NoNeededSheetMessage' : 'В файле отсутствют листы для обработки!'

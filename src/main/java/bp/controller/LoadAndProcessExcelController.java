@@ -51,8 +51,12 @@ public class LoadAndProcessExcelController {
 
     @FXML
     private void onChooseButtonAction(ActionEvent event) throws IOException, InvalidFormatException {
+        messageArea.clear();
         bpFile = configuration.getFileChooser().showOpenDialog(new Stage());
         allSheets = null;
+        validRows.clear();
+        invalidRows.clear();
+        checkResults.clear();
         messageArea.setText(configuration.getMessages().get(FileParsingMessage));
         if (bpFile == null) {
             filePathField.clear();
@@ -61,12 +65,12 @@ public class LoadAndProcessExcelController {
         }
         filePathField.setText(bpFile.getAbsolutePath());
         allSheets = configuration.getFileParser().parseFile(bpFile);
-        if (allSheets == null ||
-                allSheets.size() == 0 ||
-                !allSheets.containsKey(configuration.getCheckedTypes().get(0))) {
-            // make it more common
+        if (allSheets == null || allSheets.size() == 0) {
             messageArea.setText(configuration.getMessages().get(NoNeededSheetMessage));
             return;
+        }
+        for (Map.Entry<ParametersType, List<AbstractEntity>> entry : allSheets.entrySet()) {
+            configuration.getCheckedTypes().add(entry.getKey());
         }
         messageArea.setText(configuration.getMessages().get(FileCorrectMessage));
         processFileButton.setDisable(false);

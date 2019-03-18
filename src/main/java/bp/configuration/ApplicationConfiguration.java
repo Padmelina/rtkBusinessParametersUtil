@@ -53,7 +53,7 @@ public class ApplicationConfiguration {
     @Getter
     private FileParser fileParser;
     @Getter
-    private List<ParametersType> checkedTypes = new ArrayList<>(Arrays.asList(INSTALLER_VISIT));
+    private List<ParametersType> checkedTypes = new ArrayList<>();
     @Getter
     private QueryFileGenerator queryGenerator;
     @Getter

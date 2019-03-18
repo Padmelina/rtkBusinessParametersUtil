@@ -9,4 +9,8 @@ public class FileNames {
     private String mainScriptName;
     @Getter
     private String revertScriptName;
+    @Getter
+    private String checkMainScriptName;
+    @Getter
+    private String checkRevertScriptName;
 }

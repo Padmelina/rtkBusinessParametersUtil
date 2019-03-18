@@ -15,6 +15,7 @@ public interface Constants {
         String ADP_TBL_OID = "adp_tbl_oid";
         String ADP_OBJECT = "adp_object";
         String DUAL = "dual";
+        String X_C_LST_MAP = "x_c_lts_map";
     }
 
     interface FieldsName {
@@ -40,6 +41,10 @@ public interface Constants {
         String TYPE1 = "TYPE1";
         String TYPE2 = "TYPE2";
         String TYPE3 = "TYPE3";
+        String X_C_LTS_MAP2C_TYPE_LVL3 = "x_c_lts_map2c_type_lvl3";
+        String X_C_LTS_MAP2TERRITORY = "x_c_lts_map2territory";
+        String X_C_LTS_MAP2X_TYPE_TECHN = "x_c_lts_map2x_type_techn";
+        String X_C_LTS_MAP2X_PART_NUM = "x_c_lts_map2x_part_num";
     }
 
 
@@ -100,6 +105,11 @@ public interface Constants {
         String VALUES = "VALUES";
         String END_LOOP = "END LOOP;";
         String DELETE = "DELETE";
+        String COUNT_ALL = "COUNT(*)";
+        String IF = "IF";
+        String END_IF = "END IF;";
+        String THEN = "THEN";
+        String DBMS_PUT_LINE = "DBMS_OUTPUT.PUT_LINE({0})";
     }
 
     interface CommonSqlQueries {

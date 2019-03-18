@@ -1,6 +1,6 @@
 package bp.query.generator.implementations;
 
-import bp.model.entity.InstallerVisit;
+import bp.model.entity.OnlineTransfer;
 import bp.query.generator.QueryAbstractCreator;
 
 import java.io.IOException;
@@ -17,20 +17,21 @@ import static bp.model.Constants.CommonSqlQueries.FROM_DUAL;
 import static bp.model.Constants.CommonSqlQueries.SELECT_DUAL;
 import static bp.model.Constants.FieldsName.*;
 import static bp.model.Constants.SqlKeyWords.*;
+import static bp.model.Constants.SqlKeyWords.END_LOOP;
+import static bp.model.Constants.SqlKeyWords.TERMINAL_END;
 import static bp.model.Constants.SqlQueryConstants.*;
 import static bp.model.Constants.TableNames.*;
 import static org.jooq.tools.StringUtils.isEmpty;
 
-public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVisit> {
-    public InstallerVisitQueryCreator(Map<String, String> constants) {
+public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTransfer> {
+    public OnlineTransferQueryCreator(Map<String, String> constants) {
         super(constants);
     }
 
     @Override
-    public boolean generateAdd(String fileName, List<InstallerVisit> records) throws IOException {
+    public boolean generateAdd(String fileName, List<OnlineTransfer> records) throws IOException {
         if (isEmpty(fileName) || records == null || records.size() == 0) return false;
         Path filePath = Paths.get(fileName);
-        // TODO: make normal file generating, not like that
         List<String> lines = new ArrayList<>();
         lines.add(DECLARE);
         lines.add("first_objid" + " " + NUMBER + ";");
@@ -38,13 +39,14 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
         lines.add("territory" + " " + NUMBER + ";");
         lines.add("lvl3" + " " + NUMBER + ";");
         lines.add("record_count" + " " + NUMBER + ";");
+        lines.add("technology" + " " + NUMBER + ";");
         lines.add(TYPE + " virt_row " + IS_RECORD + " (" +
-                  TERR_ID + " " + MessageFormat.format(VARCHAR2, 5) + ", " +
-                  PART_NUM + " " + MessageFormat.format(VARCHAR2, 30) + ", " +
-                  FAMILY + " " + MessageFormat.format(VARCHAR2, 20) + ", " +
-                  TYPE1 + " " + MessageFormat.format(VARCHAR2, 40) + ", " +
-                  TYPE2 + " " + MessageFormat.format(VARCHAR2, 40) + ", " +
-                  TYPE3 + " " + MessageFormat.format(VARCHAR2, 40) + ");");
+                TERR_ID + " " + MessageFormat.format(VARCHAR2, 5) + ", " +
+                PART_NUM + " " + MessageFormat.format(VARCHAR2, 30) + ", " +
+                FAMILY + " " + MessageFormat.format(VARCHAR2, 20) + ", " +
+                TYPE1 + " " + MessageFormat.format(VARCHAR2, 40) + ", " +
+                TYPE2 + " " + MessageFormat.format(VARCHAR2, 40) + ", " +
+                TYPE3 + " " + MessageFormat.format(VARCHAR2, 40) + ");");
         lines.add(TYPE + " virt_array " + IS_TABLE_OF + " virt_row " + INDEX_BY + " " + MessageFormat.format(VARCHAR2, 10) + ";");
         lines.add("x_inp_params virt_array;");
         lines.add("x_inp_params_row virt_row;");
@@ -66,15 +68,18 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
                 FROM + " " + SA_SCHEMA + ADP_TBL_OID + " " + WHERE + " " + TYPE_ID + " = (" +
                 SELECT + " " + "o." + TYPE_ID + " " + FROM + " " +
                 SA_SCHEMA + ADP_OBJECT + " o " +
-                WHERE + " o." + TYPE_NAME + " = '" + X_C_WFM_MAP + "') " + FOR_UPDATE + ";");
+                WHERE + " o." + TYPE_NAME + " = '" + X_C_LST_MAP + "') " + FOR_UPDATE + ";");
         lines.add(UPDATE + " " + SA_SCHEMA + ADP_TBL_OID + " " +
                 SET + " " + OBJ_NUM + " = first_objid + record_count " +
                 WHERE + " " + TYPE_ID + " = (" +
                 SELECT + " " + "o." + TYPE_ID + " " + FROM + " " +
                 SA_SCHEMA + ADP_OBJECT + " o " +
-                WHERE + " o." + TYPE_NAME + " = '" + X_C_WFM_MAP + "');");
+                WHERE + " o." + TYPE_NAME + " = '" + X_C_LST_MAP + "');");
         lines.add(COMMIT);
         lines.add(FOR + " i " + IN + " 0..record_count-1 " + LOOP);
+        lines.add(SELECT + " techn." + OBJID + " " + INTO + " technology " +
+                FROM + " " + SA_TABLE + TECHNOLOGY + " techn " +
+                WHERE + " techn." + X_NAME_TECHN + " = x_inp_params(i)." + FAMILY + ";");
         lines.add(SELECT + " terr." + OBJID + " " + INTO + " territory " +
                 FROM + " " + SA_TABLE + TERRITORY + " terr " +
                 WHERE + " terr." + TERR_ID + " = x_inp_params(i)." + TERR_ID + ";");
@@ -97,10 +102,10 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
         lines.add(INNER_JOIN + " " + SA_TABLE + HGBST_ELM + " type3 " + ON + " type3." + OBJID + " = m5." + HGBST_ELM2HGBST_SHOW + " " + AND + " type3." + OBJID + " !=  type2." + OBJID + " " + AND + " type3." + STATE  + "!= '" + InactiveState + "'");
         lines.add(WHERE + " list." + TITLE + " = '" + CaseTypeList + "' " + AND + " type1." + TITLE + " = x_inp_params(i).TYPE1 " + AND + " type2." + TITLE + " = x_inp_params(i).TYPE2 " + AND + " type3." + TITLE + " = x_inp_params(i).TYPE3;");
         lines.add(INSERT_ALL);
-        lines.add(INTO + " " + SA_TABLE + X_C_WFM_MAP);
-        lines.add("(" + OBJID + ", " + DEV + ", " + X_IS_ACTIVE + ", " + X_TECH_FAMILY + ", " + X_C_WFM_MAP2C_TYPE_LVL3 + ", " + X_C_WFM_MAP2TERRITORY + ", " + X_C_WFM_MAP2PART_NUM + ")");
+        lines.add(INTO + " " + SA_TABLE + X_C_LST_MAP);
+        lines.add("(" + OBJID + ", " + DEV + ", " + X_IS_ACTIVE + ", " + X_C_LTS_MAP2X_TYPE_TECHN + ", " + X_C_LTS_MAP2C_TYPE_LVL3 + ", " + X_C_LTS_MAP2TERRITORY + ", " + X_C_LTS_MAP2X_PART_NUM + ")");
         lines.add(VALUES);
-        lines.add("(first_objid + i, 1, 1, x_inp_params(i).FAMILY, lvl3, territory, part)");
+        lines.add("(first_objid + i, 1, 1, technology, lvl3, territory, part)");
         lines.add(SELECT_DUAL);
         lines.add(COMMIT);
         lines.add(END_LOOP);
@@ -110,13 +115,13 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
     }
 
     @Override
-    public boolean generateDelete(String fileName, List<InstallerVisit> records) throws IOException {
+    public boolean generateDelete(String fileName, List<OnlineTransfer> records) throws IOException {
         if (isEmpty(fileName) || records == null || records.size() == 0) return false;
         Path filePath = Paths.get(fileName);
-        // TODO: make normal file generating, not like that
         List<String> lines = new ArrayList<>();
         lines.add(DECLARE);
         lines.add("first_objid" + " " + NUMBER + ";");
+        lines.add("technology" + " " + NUMBER + ";");
         lines.add("part" + " " + NUMBER + ";");
         lines.add("territory" + " " + NUMBER + ";");
         lines.add("lvl3" + " " + NUMBER + ";");
@@ -147,6 +152,9 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
         lines.add("record_count := x_inp_params.count;");
 
         lines.add(FOR + " i " + IN + " 0..record_count-1 " + LOOP);
+        lines.add(SELECT + " techn." + OBJID + " " + INTO + " technology " +
+                FROM + " " + SA_TABLE + TECHNOLOGY + " techn " +
+                WHERE + " techn." + X_NAME_TECHN + " = x_inp_params(i)." + FAMILY + ";");
         lines.add(SELECT + " terr." + OBJID + " " + INTO + " territory " +
                 FROM + " " + SA_TABLE + TERRITORY + " terr " +
                 WHERE + " terr." + TERR_ID + " = x_inp_params(i)." + TERR_ID + ";");
@@ -168,12 +176,12 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
         lines.add(INNER_JOIN + " " + SA_SCHEMA + MTM_HGBST_ELM0_HGBST_SHOW1 + " m5 " + ON + " show3." + OBJID + " = m5." + HGBST_SHOW2HGBST_ELM);
         lines.add(INNER_JOIN + " " + SA_TABLE + HGBST_ELM + " type3 " + ON + " type3." + OBJID + " = m5." + HGBST_ELM2HGBST_SHOW + " " + AND + " type3." + OBJID + " !=  type2." + OBJID + " " + AND + " type3." + STATE  + "!= '" + InactiveState + "'");
         lines.add(WHERE + " list." + TITLE + " = '" + CaseTypeList + "' " + AND + " type1." + TITLE + " = x_inp_params(i).TYPE1 " + AND + " type2." + TITLE + " = x_inp_params(i).TYPE2 " + AND + " type3." + TITLE + " = x_inp_params(i).TYPE3;");
-        lines.add(DELETE + " " + FROM + " " + SA_TABLE + X_C_WFM_MAP + " " + WHERE);
+        lines.add(DELETE + " " + FROM + " " + SA_TABLE + X_C_LST_MAP + " " + WHERE);
         lines.add(X_IS_ACTIVE + " = '1' " + AND);
-        lines.add(X_TECH_FAMILY + " = x_inp_params(i)." + FAMILY  + " " + AND);
-        lines.add(X_C_WFM_MAP2C_TYPE_LVL3 + " = lvl3 " + AND);
-        lines.add(X_C_WFM_MAP2TERRITORY + " = territory " + AND);
-        lines.add(X_C_WFM_MAP2PART_NUM + " = part;");
+        lines.add(X_C_LTS_MAP2X_TYPE_TECHN + " = technology " +  AND);
+        lines.add(X_C_LTS_MAP2C_TYPE_LVL3 + " = lvl3 " + AND);
+        lines.add(X_C_LTS_MAP2TERRITORY + " = territory " + AND);
+        lines.add(X_C_LTS_MAP2X_PART_NUM + " = part;");
         lines.add(COMMIT);
         lines.add(END_LOOP);
         lines.add(TERMINAL_END);
@@ -182,7 +190,7 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
     }
 
     @Override
-    public boolean generateCheckAdd(String fileName, List<InstallerVisit> records) throws IOException {
+    public boolean generateCheckAdd(String fileName, List<OnlineTransfer> records) throws IOException {
         if (isEmpty(fileName) || records == null || records.size() == 0) return false;
         Path filePath = Paths.get(fileName);
         List<String> lines = new ArrayList<>();
@@ -192,6 +200,7 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
         lines.add("territory" + " " + NUMBER + ";");
         lines.add("lvl3" + " " + NUMBER + ";");
         lines.add("record_count" + " " + NUMBER + ";");
+        lines.add("technology" + " " + NUMBER + ";");
         lines.add("current_count" + " " + NUMBER + ";");
         lines.add(TYPE + " virt_row " + IS_RECORD + " (" +
                 TERR_ID + " " + MessageFormat.format(VARCHAR2, 5) + ", " +
@@ -217,9 +226,23 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
             lines.add("x_inp_params(" + i + ") := x_inp_params_row;");
         }
         lines.add("record_count := x_inp_params.count;");
-
+        lines.add(SELECT + " " + OBJ_NUM + " " + INTO + " first_objid " +
+                FROM + " " + SA_SCHEMA + ADP_TBL_OID + " " + WHERE + " " + TYPE_ID + " = (" +
+                SELECT + " " + "o." + TYPE_ID + " " + FROM + " " +
+                SA_SCHEMA + ADP_OBJECT + " o " +
+                WHERE + " o." + TYPE_NAME + " = '" + X_C_LST_MAP + "') " + FOR_UPDATE + ";");
+        lines.add(UPDATE + " " + SA_SCHEMA + ADP_TBL_OID + " " +
+                SET + " " + OBJ_NUM + " = first_objid + record_count " +
+                WHERE + " " + TYPE_ID + " = (" +
+                SELECT + " " + "o." + TYPE_ID + " " + FROM + " " +
+                SA_SCHEMA + ADP_OBJECT + " o " +
+                WHERE + " o." + TYPE_NAME + " = '" + X_C_LST_MAP + "');");
+        lines.add(COMMIT);
         lines.add(FOR + " i " + IN + " 0..record_count-1 " + LOOP);
         lines.add("current_count := 0;");
+        lines.add(SELECT + " techn." + OBJID + " " + INTO + " technology " +
+                FROM + " " + SA_TABLE + TECHNOLOGY + " techn " +
+                WHERE + " techn." + X_NAME_TECHN + " = x_inp_params(i)." + FAMILY + ";");
         lines.add(SELECT + " terr." + OBJID + " " + INTO + " territory " +
                 FROM + " " + SA_TABLE + TERRITORY + " terr " +
                 WHERE + " terr." + TERR_ID + " = x_inp_params(i)." + TERR_ID + ";");
@@ -242,22 +265,23 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
         lines.add(INNER_JOIN + " " + SA_TABLE + HGBST_ELM + " type3 " + ON + " type3." + OBJID + " = m5." + HGBST_ELM2HGBST_SHOW + " " + AND + " type3." + OBJID + " !=  type2." + OBJID + " " + AND + " type3." + STATE  + "!= '" + InactiveState + "'");
         lines.add(WHERE + " list." + TITLE + " = '" + CaseTypeList + "' " + AND + " type1." + TITLE + " = x_inp_params(i).TYPE1 " + AND + " type2." + TITLE + " = x_inp_params(i).TYPE2 " + AND + " type3." + TITLE + " = x_inp_params(i).TYPE3;");
         lines.add(SELECT + " " + COUNT_ALL + " " + INTO + " current_count " + FROM + " " + SA_TABLE + X_C_LST_MAP);
-        lines.add(WHERE + " " + X_TECH_FAMILY + " = x_inp_params(i)." + FAMILY  + " ");
-        lines.add(AND + " " + X_C_WFM_MAP2C_TYPE_LVL3 + " = lvl3 ");
-        lines.add(AND + " " + X_C_WFM_MAP2TERRITORY + " = territory ");
-        lines.add(AND + " " + X_C_WFM_MAP2PART_NUM + " = part ");
+        lines.add(WHERE + " " + X_C_LTS_MAP2X_TYPE_TECHN + " = technology ");
+        lines.add(AND + " " + X_C_LTS_MAP2C_TYPE_LVL3 + " = lvl3 ");
+        lines.add(AND + " " + X_C_LTS_MAP2TERRITORY + " = territory ");
+        lines.add(AND + " " + X_C_LTS_MAP2X_PART_NUM + " = part ");
         lines.add(AND + " " + X_IS_ACTIVE + " = " + ActiveStatus + ";");
         lines.add(IF + " " + "current_count != 1" + " " + THEN);
         lines.add(MessageFormat.format(DBMS_PUT_LINE, "'Record: {' || x_inp_params(i).family || ', ' || x_inp_params(i).terr_id || ', ' || x_inp_params(i).part_num || ', ' || x_inp_params(i).TYPE1 || ', ' || x_inp_params(i).TYPE2 || ', ' || x_inp_params(i).TYPE3 || '} not found!'") + ";");
         lines.add(END_IF);
         lines.add(END_LOOP);
         lines.add(MessageFormat.format(DBMS_PUT_LINE, "COMPLETED!"));
+        lines.add(TERMINAL_END);
         Files.write(filePath, lines, Charset.defaultCharset());
         return true;
     }
 
     @Override
-    public boolean generateCheckDelete(String fileName, List<InstallerVisit> records) throws IOException {
+    public boolean generateCheckDelete(String fileName, List<OnlineTransfer> records) throws IOException {
         if (isEmpty(fileName) || records == null || records.size() == 0) return false;
         Path filePath = Paths.get(fileName);
         List<String> lines = new ArrayList<>();
@@ -267,6 +291,7 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
         lines.add("territory" + " " + NUMBER + ";");
         lines.add("lvl3" + " " + NUMBER + ";");
         lines.add("record_count" + " " + NUMBER + ";");
+        lines.add("technology" + " " + NUMBER + ";");
         lines.add("current_count" + " " + NUMBER + ";");
         lines.add(TYPE + " virt_row " + IS_RECORD + " (" +
                 TERR_ID + " " + MessageFormat.format(VARCHAR2, 5) + ", " +
@@ -292,9 +317,23 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
             lines.add("x_inp_params(" + i + ") := x_inp_params_row;");
         }
         lines.add("record_count := x_inp_params.count;");
-
+        lines.add(SELECT + " " + OBJ_NUM + " " + INTO + " first_objid " +
+                FROM + " " + SA_SCHEMA + ADP_TBL_OID + " " + WHERE + " " + TYPE_ID + " = (" +
+                SELECT + " " + "o." + TYPE_ID + " " + FROM + " " +
+                SA_SCHEMA + ADP_OBJECT + " o " +
+                WHERE + " o." + TYPE_NAME + " = '" + X_C_LST_MAP + "') " + FOR_UPDATE + ";");
+        lines.add(UPDATE + " " + SA_SCHEMA + ADP_TBL_OID + " " +
+                SET + " " + OBJ_NUM + " = first_objid + record_count " +
+                WHERE + " " + TYPE_ID + " = (" +
+                SELECT + " " + "o." + TYPE_ID + " " + FROM + " " +
+                SA_SCHEMA + ADP_OBJECT + " o " +
+                WHERE + " o." + TYPE_NAME + " = '" + X_C_LST_MAP + "');");
+        lines.add(COMMIT);
         lines.add(FOR + " i " + IN + " 0..record_count-1 " + LOOP);
         lines.add("current_count := 0;");
+        lines.add(SELECT + " techn." + OBJID + " " + INTO + " technology " +
+                FROM + " " + SA_TABLE + TECHNOLOGY + " techn " +
+                WHERE + " techn." + X_NAME_TECHN + " = x_inp_params(i)." + FAMILY + ";");
         lines.add(SELECT + " terr." + OBJID + " " + INTO + " territory " +
                 FROM + " " + SA_TABLE + TERRITORY + " terr " +
                 WHERE + " terr." + TERR_ID + " = x_inp_params(i)." + TERR_ID + ";");
@@ -317,16 +356,17 @@ public class InstallerVisitQueryCreator extends QueryAbstractCreator<InstallerVi
         lines.add(INNER_JOIN + " " + SA_TABLE + HGBST_ELM + " type3 " + ON + " type3." + OBJID + " = m5." + HGBST_ELM2HGBST_SHOW + " " + AND + " type3." + OBJID + " !=  type2." + OBJID + " " + AND + " type3." + STATE  + "!= '" + InactiveState + "'");
         lines.add(WHERE + " list." + TITLE + " = '" + CaseTypeList + "' " + AND + " type1." + TITLE + " = x_inp_params(i).TYPE1 " + AND + " type2." + TITLE + " = x_inp_params(i).TYPE2 " + AND + " type3." + TITLE + " = x_inp_params(i).TYPE3;");
         lines.add(SELECT + " " + COUNT_ALL + " " + INTO + " current_count " + FROM + " " + SA_TABLE + X_C_LST_MAP);
-        lines.add(WHERE + " " + X_TECH_FAMILY + " = x_inp_params(i)." + FAMILY  + " ");
-        lines.add(AND + " " + X_C_WFM_MAP2C_TYPE_LVL3 + " = lvl3 ");
-        lines.add(AND + " " + X_C_WFM_MAP2TERRITORY + " = territory ");
-        lines.add(AND + " " + X_C_WFM_MAP2PART_NUM + " = part ");
+        lines.add(WHERE + " " + X_C_LTS_MAP2X_TYPE_TECHN + " = technology ");
+        lines.add(AND + " " + X_C_LTS_MAP2C_TYPE_LVL3 + " = lvl3 ");
+        lines.add(AND + " " + X_C_LTS_MAP2TERRITORY + " = territory ");
+        lines.add(AND + " " + X_C_LTS_MAP2X_PART_NUM + " = part ");
         lines.add(AND + " " + X_IS_ACTIVE + " = " + ActiveStatus + ";");
         lines.add(IF + " " + "current_count != 0" + " " + THEN);
         lines.add(MessageFormat.format(DBMS_PUT_LINE, "'Record: {' || x_inp_params(i).family || ', ' || x_inp_params(i).terr_id || ', ' || x_inp_params(i).part_num || ', ' || x_inp_params(i).TYPE1 || ', ' || x_inp_params(i).TYPE2 || ', ' || x_inp_params(i).TYPE3 || '} not deleted!'") + ";");
         lines.add(END_IF);
         lines.add(END_LOOP);
         lines.add(MessageFormat.format(DBMS_PUT_LINE, "COMPLETED!"));
+        lines.add(TERMINAL_END);
         Files.write(filePath, lines, Charset.defaultCharset());
         return true;
     }

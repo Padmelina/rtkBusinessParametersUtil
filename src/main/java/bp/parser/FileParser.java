@@ -5,6 +5,7 @@ import bp.model.ParametersType;
 import bp.model.entity.AbstractEntity;
 import bp.parser.sheets.AbstractSheetParser;
 import bp.parser.sheets.implementations.InstallerVisitSheetParser;
+import bp.parser.sheets.implementations.OnlineTransferSheetParser;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -41,6 +42,10 @@ public class FileParser {
                 case INSTALLER_VISIT:
                     sheetParser = new InstallerVisitSheetParser(actions);
                     result.put(sheet.getKey(), sheetParser.parseSheet(sheets.get(ParametersType.INSTALLER_VISIT)));
+                    break;
+                case ONLINE_TRANSFER:
+                    sheetParser = new OnlineTransferSheetParser(actions);
+                    result.put(sheet.getKey(), sheetParser.parseSheet(sheets.get(ParametersType.ONLINE_TRANSFER)));
                     break;
             }
         }

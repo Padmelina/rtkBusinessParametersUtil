@@ -4,6 +4,7 @@ public enum Action {
     ADD("add"),
     DELETE("delete"),
     REVERT("revert"),
+    CHECK("check"),
     UNKNOWN("unknown");
 
     private String action;
@@ -19,6 +20,7 @@ public enum Action {
     public static Action parseAction(String str) {
         if (ADD.action.equals(str)) return ADD;
         if (DELETE.action.equals(str)) return DELETE;
+        if (CHECK.action.equals(str)) return CHECK;
         if (REVERT.action.equals(str)) return REVERT;
         return UNKNOWN;
     }
