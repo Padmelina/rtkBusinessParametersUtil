@@ -1,10 +1,10 @@
 package bp.statistic;
 
-import bp.model.CheckError;
-import bp.model.ParametersType;
-import bp.model.entity.AbstractEntity;
-import bp.model.entity.InstallerVisit;
-import bp.model.entity.OnlineTransfer;
+import bp.model.resources.type.CheckError;
+import bp.model.resources.type.ParametersType;
+import bp.checker.entitycheckers.entity.AbstractEntity;
+import bp.checker.entitycheckers.entity.InstallerVisit;
+import bp.checker.entitycheckers.entity.OnlineTransfer;
 import bp.statistic.implementations.InstallerVisitLogWriter;
 import bp.statistic.implementations.OnlineTransferLogWriter;
 import bp.utils.FileNamesGenerator;
@@ -16,17 +16,18 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static bp.context.Context.getContext;
+import static bp.model.constants.Constants.ResourceFilesNames.USER_DIR;
+
 public class LogGenerator {
     protected FileNamesGenerator fileNameGenerator;
     protected CSVWriter csvWriter;
     protected AbstractLogWriter logWriter;
-    protected Map<CheckError, String> errorText = new HashMap<>();
 
-    public LogGenerator(FileNamesGenerator fileNameGenerator, Map<CheckError, String> errorText) {
+    public LogGenerator(FileNamesGenerator fileNameGenerator) {
         this.fileNameGenerator = fileNameGenerator;
-        this.errorText = errorText;
 
-        new File(System.getProperty("user.dir") + "/log").mkdirs();
+        new File(System.getProperty(USER_DIR) + "/log").mkdirs();
         File file = new File(fileNameGenerator.generateLogFileName());
         FileWriter writer = null;
         try { writer = new FileWriter(file); }
@@ -38,15 +39,15 @@ public class LogGenerator {
                 CSVWriter.DEFAULT_LINE_END);
     }
 
-    public void generateLogFile(ParametersType type, Map<AbstractEntity, CheckError> records) throws IOException {
-        csvWriter.writeNext(new String[] {fileNameGenerator.getNamesBySheetType().get(type)});
+    public void generateLogFile(ParametersType type, Map<AbstractEntity, CheckError> records) {
+        csvWriter.writeNext(new String[] {getContext().getResources().getNamesBySheetType().get(type)});
         switch (type) {
             case INSTALLER_VISIT:
                 Map<InstallerVisit, CheckError> visits = new HashMap<>();
                 for (Map.Entry<AbstractEntity, CheckError> record : records.entrySet()) {
                     visits.put((InstallerVisit) record.getKey(), record.getValue());
                 }
-                logWriter = new InstallerVisitLogWriter(csvWriter, errorText);
+                logWriter = new InstallerVisitLogWriter(csvWriter);
                 logWriter.writeToLogFile(visits);
                 break;
             case ONLINE_TRANSFER:
@@ -54,13 +55,14 @@ public class LogGenerator {
                 for (Map.Entry<AbstractEntity, CheckError> record : records.entrySet()) {
                     transfers.put((OnlineTransfer) record.getKey(), record.getValue());
                 }
-                logWriter = new OnlineTransferLogWriter(csvWriter, errorText);
+                logWriter = new OnlineTransferLogWriter(csvWriter);
                 logWriter.writeToLogFile(transfers);
                 break;
         }
     }
 
-    public void endLogFile() throws IOException {
-        csvWriter.close();
+    public void endLogFile() {
+        try { csvWriter.close(); }
+        catch (IOException e) { getContext().getLogger().error(e.getMessage(), e); }
     }
 }

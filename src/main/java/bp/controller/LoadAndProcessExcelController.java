@@ -1,17 +1,15 @@
 package bp.controller;
 
-import bp.model.CheckError;
-import bp.configuration.ApplicationConfiguration;
+import bp.model.resources.type.CheckError;
 import bp.model.HandleResult;
-import bp.model.ParametersType;
-import bp.model.entity.AbstractEntity;
+import bp.model.resources.type.ParametersType;
+import bp.checker.entitycheckers.entity.AbstractEntity;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import java.awt.*;
 import java.io.File;
@@ -20,8 +18,10 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.List;
 
-import static bp.model.FormMessages.*;
-import static bp.model.CheckError.Ok;
+import static bp.context.Context.getContext;
+import static bp.model.resources.type.FormMessages.*;
+import static bp.model.resources.type.CheckError.Ok;
+import static bp.model.constants.Constants.ResourceFilesNames.USER_DIR;
 import static java.util.stream.Collectors.*;
 
 public class LoadAndProcessExcelController {
@@ -34,70 +34,67 @@ public class LoadAndProcessExcelController {
     @FXML
     private TextArea messageArea;
 
-    private ApplicationConfiguration configuration;
-
     private File bpFile;
 
     private Map<ParametersType, List<AbstractEntity>> allSheets = new HashMap<>();
-
     private Map<ParametersType, List<AbstractEntity>> validRows = new HashMap<>();
     private Map<ParametersType, List<AbstractEntity>> invalidRows = new HashMap<>();
-
     private Map<ParametersType, Map<AbstractEntity, CheckError>> checkResults = new HashMap<>();
 
-    public LoadAndProcessExcelController(ApplicationConfiguration configuration) {
-        this.configuration = configuration;
+    public LoadAndProcessExcelController() {
+
     }
 
     @FXML
-    private void onChooseButtonAction(ActionEvent event) throws IOException, InvalidFormatException {
+    private void onChooseButtonAction(ActionEvent event) {
         messageArea.clear();
-        bpFile = configuration.getFileChooser().showOpenDialog(new Stage());
+        bpFile = getContext().getFileChooser().showOpenDialog(new Stage());
         allSheets = null;
         validRows.clear();
         invalidRows.clear();
         checkResults.clear();
-        messageArea.setText(configuration.getMessages().get(FileParsingMessage));
+        getContext().getCheckedTypes().clear();
+        messageArea.setText(getContext().getResources().getMessages().get(FileParsingMessage));
         if (bpFile == null) {
             filePathField.clear();
-            messageArea.setText(configuration.getMessages().get(NoFileMessage));
+            messageArea.setText(getContext().getResources().getMessages().get(NoFileMessage));
             return;
         }
         filePathField.setText(bpFile.getAbsolutePath());
-        allSheets = configuration.getFileParser().parseFile(bpFile);
+        allSheets = getContext().getFileParser().parseFile(bpFile);
         if (allSheets == null || allSheets.size() == 0) {
-            messageArea.setText(configuration.getMessages().get(NoNeededSheetMessage));
+            messageArea.setText(getContext().getResources().getMessages().get(NoNeededSheetMessage));
             return;
         }
         for (Map.Entry<ParametersType, List<AbstractEntity>> entry : allSheets.entrySet()) {
-            configuration.getCheckedTypes().add(entry.getKey());
+            getContext().getCheckedTypes().add(entry.getKey());
         }
-        messageArea.setText(configuration.getMessages().get(FileCorrectMessage));
+        messageArea.setText(getContext().getResources().getMessages().get(FileCorrectMessage));
         processFileButton.setDisable(false);
     }
 
     @FXML
-    private void onProcessButtonAction(ActionEvent event) throws IOException {
+    private void onProcessButtonAction(ActionEvent event) {
         chooseFileButton.setDisable(true);
-        messageArea.setText(configuration.getMessages().get(FileCheckingMessage));
-        allSheets.entrySet().forEach(entry -> handleEntity(entry.getKey(), entry.getValue()));
-        messageArea.setText(configuration.getMessages().get(ScriptMessage));
+        processFileButton.setDisable(true);
+        messageArea.setText(getContext().getResources().getMessages().get(FileCheckingMessage));
+        allSheets.entrySet().forEach(entry -> {
+            HandleResult handleResult = collectEntityHandleResult(entry.getKey(), entry.getValue());
+            checkResults.put(entry.getKey(), handleResult.getReport());
+            validRows.put(entry.getKey(), handleResult.getValid());
+            invalidRows.put(entry.getKey(), handleResult.getErrors());
+        });
+        messageArea.setText(getContext().getResources().getMessages().get(ScriptMessage));
         generateResultStatistic();
         generateScripts();
+        processFileButton.setDisable(false);
         chooseFileButton.setDisable(false);
-    }
-
-    private void handleEntity(ParametersType type, List<AbstractEntity> entities) {
-        HandleResult handleResult = collectEntityHandleResult(type, entities);
-        checkResults.put(type, handleResult.getReport());
-        validRows.put(type, handleResult.getValid());
-        invalidRows.put(type, handleResult.getErrors());
     }
 
     private HandleResult collectEntityHandleResult(ParametersType parametersType, List<AbstractEntity> entities) {
         Map<AbstractEntity, CheckError> report = entities
                 .stream()
-                .collect(toMap(entity -> entity, entity -> configuration.getEntityChecker().check(parametersType, entity)));
+                .collect(toMap(entity -> entity, entity -> getContext().getEntityCheckers().get(parametersType).check(entity)));
         List<AbstractEntity> valid = report.entrySet()
                 .stream()
                 .filter(entry -> entry.getValue() == Ok)
@@ -112,16 +109,19 @@ public class LoadAndProcessExcelController {
     }
 
     private void generateResultStatistic() {
-        messageArea.setText(configuration.getMessages().get(CheckEndedMessage));
-        for (ParametersType type : configuration.getCheckedTypes()) {
-            messageArea.appendText('\n' + configuration.getNamesBySheetType().get(type) + ": " + '\n');
-            messageArea.appendText(MessageFormat.format(configuration.getMessages().get(StatisticSuccessMessage), validRows.get(type).size()) + '\n');
-            messageArea.appendText(MessageFormat.format(configuration.getMessages().get(StatisticErrorsMessage), invalidRows.get(type).size()));
+        messageArea.setText(getContext().getResources().getMessages().get(CheckEndedMessage));
+        for (ParametersType type : getContext().getCheckedTypes()) {
+            messageArea.appendText('\n' + getContext().getResources().getNamesBySheetType().get(type) + ": " + '\n');
+            messageArea.appendText(MessageFormat.format(getContext().getResources().getMessages().get(StatisticSuccessMessage), validRows.get(type).size()) + '\n');
+            messageArea.appendText(MessageFormat.format(getContext().getResources().getMessages().get(StatisticErrorsMessage), invalidRows.get(type).size()));
         }
     }
 
-    private void generateScripts() throws IOException {
-        configuration.getQueryGenerator().generateScripts(validRows, checkResults);
-        Desktop.getDesktop().open(new File(System.getProperty("user.dir")));
+    private void generateScripts() {
+        getContext().getQueryGenerator().generateScripts(validRows, checkResults);
+        try {
+            Desktop.getDesktop().open(new File(System.getProperty(USER_DIR)));
+        } catch (IOException e) {
+            getContext().getLogger().error(e.getMessage(), e); }
     }
 }

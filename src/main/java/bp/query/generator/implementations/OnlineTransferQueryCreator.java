@@ -1,6 +1,6 @@
 package bp.query.generator.implementations;
 
-import bp.model.entity.OnlineTransfer;
+import bp.checker.entitycheckers.entity.OnlineTransfer;
 import bp.query.generator.QueryAbstractCreator;
 
 import java.io.IOException;
@@ -11,25 +11,40 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import static bp.model.Constants.CommonSqlQueries.FROM_DUAL;
-import static bp.model.Constants.CommonSqlQueries.SELECT_DUAL;
-import static bp.model.Constants.FieldsName.*;
-import static bp.model.Constants.SqlKeyWords.*;
-import static bp.model.Constants.SqlKeyWords.END_LOOP;
-import static bp.model.Constants.SqlKeyWords.TERMINAL_END;
-import static bp.model.Constants.SqlQueryConstants.*;
-import static bp.model.Constants.TableNames.*;
+import static bp.context.Context.getContext;
+import static bp.model.constants.Constants.CommonSqlQueries.FROM_DUAL;
+import static bp.model.constants.Constants.CommonSqlQueries.SELECT_DUAL;
+import static bp.model.constants.Constants.FieldsName.*;
+import static bp.model.constants.Constants.SqlKeyWords.*;
+import static bp.model.constants.Constants.SqlKeyWords.END_LOOP;
+import static bp.model.constants.Constants.SqlKeyWords.TERMINAL_END;
+import static bp.model.constants.Constants.SqlQueryConstants.*;
+import static bp.model.constants.Constants.TableNames.*;
 import static org.jooq.tools.StringUtils.isEmpty;
 
 public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTransfer> {
-    public OnlineTransferQueryCreator(Map<String, String> constants) {
-        super(constants);
+
+    private class StringList {
+        private ArrayList<String> strings;
+        public StringList() {
+            strings = new ArrayList<>();
+        }
+
+        public  StringList append(String s){
+            strings.add(strings.size() - 1, strings.get(strings.size() - 1).concat(s));
+            return this;
+        }
+
+        public  StringList appendLn(String s){
+            strings.add(s);
+            return this;
+        }
     }
 
+
     @Override
-    public boolean generateAdd(String fileName, List<OnlineTransfer> records) throws IOException {
+    public boolean generateAdd(String fileName, List<OnlineTransfer> records){
         if (isEmpty(fileName) || records == null || records.size() == 0) return false;
         Path filePath = Paths.get(fileName);
         List<String> lines = new ArrayList<>();
@@ -83,9 +98,13 @@ public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTrans
         lines.add(SELECT + " terr." + OBJID + " " + INTO + " territory " +
                 FROM + " " + SA_TABLE + TERRITORY + " terr " +
                 WHERE + " terr." + TERR_ID + " = x_inp_params(i)." + TERR_ID + ";");
+        lines.add(IF + " x_inp_params(i).part_num = 'ANY' " + THEN);
+        lines.add("part := -2;");
+        lines.add(ELSE);
         lines.add(SELECT + " pn." + OBJID + " " + INTO + " part " +
                 FROM + " " + SA_TABLE + PART_NUM + " pn " +
-                WHERE + " pn." + PART_NUMBER + " = x_inp_params(i)." + PART_NUM + " " + AND + " pn." + FAMILY + " <> '" + constants.get(KKFU) + "';");
+                WHERE + " pn." + PART_NUMBER + " = x_inp_params(i)." + PART_NUM + " " + AND + " pn." + FAMILY + " <> '" + getContext().getResources().getSqlConstants().get(KKFU) + "';");
+        lines.add(END_IF);
         lines.add(SELECT + " type3." + OBJID);
         lines.add(INTO + " lvl3");
         lines.add(FROM + " " + SA_TABLE + HGBST_LST + " list");
@@ -110,12 +129,16 @@ public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTrans
         lines.add(COMMIT);
         lines.add(END_LOOP);
         lines.add(TERMINAL_END);
-        Files.write(filePath, lines, Charset.defaultCharset());
+        try {
+            Files.write(filePath, lines, Charset.defaultCharset());
+        } catch (IOException e) {
+            getContext().getLogger().error(e.getMessage(), e);
+        }
         return true;
     }
 
     @Override
-    public boolean generateDelete(String fileName, List<OnlineTransfer> records) throws IOException {
+    public boolean generateDelete(String fileName, List<OnlineTransfer> records) {
         if (isEmpty(fileName) || records == null || records.size() == 0) return false;
         Path filePath = Paths.get(fileName);
         List<String> lines = new ArrayList<>();
@@ -150,7 +173,6 @@ public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTrans
             lines.add("x_inp_params(" + i + ") := x_inp_params_row;");
         }
         lines.add("record_count := x_inp_params.count;");
-
         lines.add(FOR + " i " + IN + " 0..record_count-1 " + LOOP);
         lines.add(SELECT + " techn." + OBJID + " " + INTO + " technology " +
                 FROM + " " + SA_TABLE + TECHNOLOGY + " techn " +
@@ -158,9 +180,13 @@ public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTrans
         lines.add(SELECT + " terr." + OBJID + " " + INTO + " territory " +
                 FROM + " " + SA_TABLE + TERRITORY + " terr " +
                 WHERE + " terr." + TERR_ID + " = x_inp_params(i)." + TERR_ID + ";");
+        lines.add(IF + " x_inp_params(i).part_num = 'ANY' " + THEN);
+        lines.add("part := -2;");
+        lines.add(ELSE);
         lines.add(SELECT + " pn." + OBJID + " " + INTO + " part " +
                 FROM + " " + SA_TABLE + PART_NUM + " pn " +
-                WHERE + " pn." + PART_NUMBER + " = x_inp_params(i)." + PART_NUM + " " + AND + " pn." + FAMILY + " <> '" + constants.get(KKFU) + "';");
+                WHERE + " pn." + PART_NUMBER + " = x_inp_params(i)." + PART_NUM + " " + AND + " pn." + FAMILY + " <> '" + getContext().getResources().getSqlConstants().get(KKFU) + "';");
+        lines.add(END_IF);
         lines.add(SELECT + " type3." + OBJID);
         lines.add(INTO + " lvl3");
         lines.add(FROM + " " + SA_TABLE + HGBST_LST + " list");
@@ -185,12 +211,16 @@ public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTrans
         lines.add(COMMIT);
         lines.add(END_LOOP);
         lines.add(TERMINAL_END);
-        Files.write(filePath, lines, Charset.defaultCharset());
+        try {
+            Files.write(filePath, lines, Charset.defaultCharset());
+        } catch (IOException e) {
+            getContext().getLogger().error(e.getMessage(), e);
+        }
         return true;
     }
 
     @Override
-    public boolean generateCheckAdd(String fileName, List<OnlineTransfer> records) throws IOException {
+    public boolean generateCheckAdd(String fileName, List<OnlineTransfer> records) {
         if (isEmpty(fileName) || records == null || records.size() == 0) return false;
         Path filePath = Paths.get(fileName);
         List<String> lines = new ArrayList<>();
@@ -226,18 +256,7 @@ public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTrans
             lines.add("x_inp_params(" + i + ") := x_inp_params_row;");
         }
         lines.add("record_count := x_inp_params.count;");
-        lines.add(SELECT + " " + OBJ_NUM + " " + INTO + " first_objid " +
-                FROM + " " + SA_SCHEMA + ADP_TBL_OID + " " + WHERE + " " + TYPE_ID + " = (" +
-                SELECT + " " + "o." + TYPE_ID + " " + FROM + " " +
-                SA_SCHEMA + ADP_OBJECT + " o " +
-                WHERE + " o." + TYPE_NAME + " = '" + X_C_LST_MAP + "') " + FOR_UPDATE + ";");
-        lines.add(UPDATE + " " + SA_SCHEMA + ADP_TBL_OID + " " +
-                SET + " " + OBJ_NUM + " = first_objid + record_count " +
-                WHERE + " " + TYPE_ID + " = (" +
-                SELECT + " " + "o." + TYPE_ID + " " + FROM + " " +
-                SA_SCHEMA + ADP_OBJECT + " o " +
-                WHERE + " o." + TYPE_NAME + " = '" + X_C_LST_MAP + "');");
-        lines.add(COMMIT);
+        lines.add("DBMS_OUTPUT.ENABLE(1000000);");
         lines.add(FOR + " i " + IN + " 0..record_count-1 " + LOOP);
         lines.add("current_count := 0;");
         lines.add(SELECT + " techn." + OBJID + " " + INTO + " technology " +
@@ -246,9 +265,13 @@ public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTrans
         lines.add(SELECT + " terr." + OBJID + " " + INTO + " territory " +
                 FROM + " " + SA_TABLE + TERRITORY + " terr " +
                 WHERE + " terr." + TERR_ID + " = x_inp_params(i)." + TERR_ID + ";");
+        lines.add(IF + " x_inp_params(i).part_num = 'ANY' " + THEN);
+        lines.add("part := -2;");
+        lines.add(ELSE);
         lines.add(SELECT + " pn." + OBJID + " " + INTO + " part " +
                 FROM + " " + SA_TABLE + PART_NUM + " pn " +
-                WHERE + " pn." + PART_NUMBER + " = x_inp_params(i)." + PART_NUM + " " + AND + " pn." + FAMILY + " <> '" + constants.get(KKFU) + "';");
+                WHERE + " pn." + PART_NUMBER + " = x_inp_params(i)." + PART_NUM + " " + AND + " pn." + FAMILY + " <> '" + getContext().getResources().getSqlConstants().get(KKFU) + "';");
+        lines.add(END_IF);
         lines.add(SELECT + " type3." + OBJID);
         lines.add(INTO + " lvl3");
         lines.add(FROM + " " + SA_TABLE + HGBST_LST + " list");
@@ -269,19 +292,23 @@ public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTrans
         lines.add(AND + " " + X_C_LTS_MAP2C_TYPE_LVL3 + " = lvl3 ");
         lines.add(AND + " " + X_C_LTS_MAP2TERRITORY + " = territory ");
         lines.add(AND + " " + X_C_LTS_MAP2X_PART_NUM + " = part ");
-        lines.add(AND + " " + X_IS_ACTIVE + " = " + ActiveStatus + ";");
+        lines.add(AND + " " + X_IS_ACTIVE + " = " + ActiveStatusQuery + ";");
         lines.add(IF + " " + "current_count != 1" + " " + THEN);
-        lines.add(MessageFormat.format(DBMS_PUT_LINE, "'Record: {' || x_inp_params(i).family || ', ' || x_inp_params(i).terr_id || ', ' || x_inp_params(i).part_num || ', ' || x_inp_params(i).TYPE1 || ', ' || x_inp_params(i).TYPE2 || ', ' || x_inp_params(i).TYPE3 || '} not found!'") + ";");
+        lines.add(MessageFormat.format(DBMS_PUT_LINE, "'Record: {' || x_inp_params(i).family || ', ' || x_inp_params(i).terr_id || ', ' || x_inp_params(i).part_num || ', ' || x_inp_params(i).TYPE1 || ', ' || x_inp_params(i).TYPE2 || ', ' || x_inp_params(i).TYPE3 || '} not found!'"));
         lines.add(END_IF);
         lines.add(END_LOOP);
-        lines.add(MessageFormat.format(DBMS_PUT_LINE, "COMPLETED!"));
+        lines.add(MessageFormat.format(DBMS_PUT_LINE, Completed_message));
         lines.add(TERMINAL_END);
-        Files.write(filePath, lines, Charset.defaultCharset());
+        try {
+            Files.write(filePath, lines, Charset.defaultCharset());
+        } catch (IOException e) {
+            getContext().getLogger().error(e.getMessage(), e);
+        }
         return true;
     }
 
     @Override
-    public boolean generateCheckDelete(String fileName, List<OnlineTransfer> records) throws IOException {
+    public boolean generateCheckDelete(String fileName, List<OnlineTransfer> records) {
         if (isEmpty(fileName) || records == null || records.size() == 0) return false;
         Path filePath = Paths.get(fileName);
         List<String> lines = new ArrayList<>();
@@ -317,18 +344,7 @@ public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTrans
             lines.add("x_inp_params(" + i + ") := x_inp_params_row;");
         }
         lines.add("record_count := x_inp_params.count;");
-        lines.add(SELECT + " " + OBJ_NUM + " " + INTO + " first_objid " +
-                FROM + " " + SA_SCHEMA + ADP_TBL_OID + " " + WHERE + " " + TYPE_ID + " = (" +
-                SELECT + " " + "o." + TYPE_ID + " " + FROM + " " +
-                SA_SCHEMA + ADP_OBJECT + " o " +
-                WHERE + " o." + TYPE_NAME + " = '" + X_C_LST_MAP + "') " + FOR_UPDATE + ";");
-        lines.add(UPDATE + " " + SA_SCHEMA + ADP_TBL_OID + " " +
-                SET + " " + OBJ_NUM + " = first_objid + record_count " +
-                WHERE + " " + TYPE_ID + " = (" +
-                SELECT + " " + "o." + TYPE_ID + " " + FROM + " " +
-                SA_SCHEMA + ADP_OBJECT + " o " +
-                WHERE + " o." + TYPE_NAME + " = '" + X_C_LST_MAP + "');");
-        lines.add(COMMIT);
+        lines.add("DBMS_OUTPUT.ENABLE(1000000);");
         lines.add(FOR + " i " + IN + " 0..record_count-1 " + LOOP);
         lines.add("current_count := 0;");
         lines.add(SELECT + " techn." + OBJID + " " + INTO + " technology " +
@@ -337,9 +353,13 @@ public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTrans
         lines.add(SELECT + " terr." + OBJID + " " + INTO + " territory " +
                 FROM + " " + SA_TABLE + TERRITORY + " terr " +
                 WHERE + " terr." + TERR_ID + " = x_inp_params(i)." + TERR_ID + ";");
+        lines.add(IF + " x_inp_params(i).part_num = 'ANY' " + THEN);
+        lines.add("part := -2;");
+        lines.add(ELSE);
         lines.add(SELECT + " pn." + OBJID + " " + INTO + " part " +
                 FROM + " " + SA_TABLE + PART_NUM + " pn " +
-                WHERE + " pn." + PART_NUMBER + " = x_inp_params(i)." + PART_NUM + " " + AND + " pn." + FAMILY + " <> '" + constants.get(KKFU) + "';");
+                WHERE + " pn." + PART_NUMBER + " = x_inp_params(i)." + PART_NUM + " " + AND + " pn." + FAMILY + " <> '" + getContext().getResources().getSqlConstants().get(KKFU) + "';");
+        lines.add(END_IF);
         lines.add(SELECT + " type3." + OBJID);
         lines.add(INTO + " lvl3");
         lines.add(FROM + " " + SA_TABLE + HGBST_LST + " list");
@@ -360,14 +380,18 @@ public class OnlineTransferQueryCreator extends QueryAbstractCreator<OnlineTrans
         lines.add(AND + " " + X_C_LTS_MAP2C_TYPE_LVL3 + " = lvl3 ");
         lines.add(AND + " " + X_C_LTS_MAP2TERRITORY + " = territory ");
         lines.add(AND + " " + X_C_LTS_MAP2X_PART_NUM + " = part ");
-        lines.add(AND + " " + X_IS_ACTIVE + " = " + ActiveStatus + ";");
+        lines.add(AND + " " + X_IS_ACTIVE + " = " + ActiveStatusQuery + ";");
         lines.add(IF + " " + "current_count != 0" + " " + THEN);
-        lines.add(MessageFormat.format(DBMS_PUT_LINE, "'Record: {' || x_inp_params(i).family || ', ' || x_inp_params(i).terr_id || ', ' || x_inp_params(i).part_num || ', ' || x_inp_params(i).TYPE1 || ', ' || x_inp_params(i).TYPE2 || ', ' || x_inp_params(i).TYPE3 || '} not deleted!'") + ";");
+        lines.add(MessageFormat.format(DBMS_PUT_LINE, "'Record: {' || x_inp_params(i).family || ', ' || x_inp_params(i).terr_id || ', ' || x_inp_params(i).part_num || ', ' || x_inp_params(i).TYPE1 || ', ' || x_inp_params(i).TYPE2 || ', ' || x_inp_params(i).TYPE3 || '} not deleted!'"));
         lines.add(END_IF);
         lines.add(END_LOOP);
-        lines.add(MessageFormat.format(DBMS_PUT_LINE, "COMPLETED!"));
+        lines.add(MessageFormat.format(DBMS_PUT_LINE, Completed_message));
         lines.add(TERMINAL_END);
-        Files.write(filePath, lines, Charset.defaultCharset());
+        try {
+            Files.write(filePath, lines, Charset.defaultCharset());
+        } catch (IOException e) {
+            getContext().getLogger().error(e.getMessage(), e);
+        }
         return true;
     }
 }

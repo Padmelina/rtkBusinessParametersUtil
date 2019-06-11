@@ -1,20 +1,21 @@
 package bp.statistic.implementations;
 
-import bp.model.CheckError;
-import bp.model.entity.OnlineTransfer;
+import bp.model.resources.type.CheckError;
+import bp.checker.entitycheckers.entity.OnlineTransfer;
 import bp.statistic.AbstractLogWriter;
 import com.opencsv.CSVWriter;
 
-import java.io.IOException;
 import java.util.Map;
 
+import static bp.context.Context.getContext;
+
 public class OnlineTransferLogWriter extends AbstractLogWriter<OnlineTransfer> {
-    public OnlineTransferLogWriter(CSVWriter csvWriter, Map<CheckError, String> errorText) {
-        super(csvWriter, errorText);
+    public OnlineTransferLogWriter(CSVWriter csvWriter) {
+        super(csvWriter);
     }
 
     @Override
-    public void writeToLogFile(Map<OnlineTransfer, CheckError> records) throws IOException {
+    public void writeToLogFile(Map<OnlineTransfer, CheckError> records) {
         for (Map.Entry<OnlineTransfer, CheckError> entity : records.entrySet()) {
             String[] line = { entity.getKey().getTechnology(),
                     entity.getKey().getPartNum(),
@@ -23,7 +24,7 @@ public class OnlineTransferLogWriter extends AbstractLogWriter<OnlineTransfer> {
                     entity.getKey().getTypeTwo(),
                     entity.getKey().getTypeThree(),
                     entity.getKey().getAction() == null ? "" : entity.getKey().getAction().getAction(),
-                    errorText.get(entity.getValue()) };
+                    getContext().getResources().getErrorText().get(entity.getValue()) };
             csvWriter.writeNext(line);
         }
     }

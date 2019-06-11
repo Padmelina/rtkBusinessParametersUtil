@@ -1,0 +1,62 @@
+actions:
+  'Добавить' : 'add'
+  'Удалить' : 'delete'
+  'Откат' : 'revert'
+  'Проверка' : 'check'
+
+sheetNames:
+  'Маппинг Бронирование' : 'INSTALLER_VISIT'
+  'Маппинг 1-2 ЛТП' : 'ONLINE_TRANSFER'
+
+queryNames:
+  'INSTALLER_VISIT' : 'Визит Монтера'
+  'ONLINE_TRANSFER' : 'Онлайн Перевод 1 2 ЛТП'
+
+heads:
+  'INSTALLER_VISIT' :
+                      'TECHNOLOGY' : 'Технология'
+                      'TYPE_ONE' : 'Тип 1'
+                      'TYPE_TWO' : 'Тип 2'
+                      'TYPE_THREE' : 'Тип 3'
+                      'MRF_ID' : 'МРФ ID'
+                      'PRODUCT' : 'Продукт'
+                      'ACTION' : 'Действие'
+  'ONLINE_TRANSFER' :
+                      'TECHNOLOGY' : 'Технология'
+                      'TYPE_ONE' : 'Тип 1'
+                      'TYPE_TWO' : 'Тип 2'
+                      'TYPE_THREE' : 'Тип 3'
+                      'MRF_ID' : 'МРФ ID'
+                      'PRODUCT' : 'Продукт'
+                      'ACTION' : 'Действие'
+
+sqlQueries:
+  'KKFU' : 'ККФУ'
+  'ANY' : 'ANY'
+
+formMessages:
+  'NoFileMessage' : 'Выберите файл!'
+  'ChooseFileMessage' : 'Выберите файл'
+  'FileParsingMessage' : 'Идёт разбор файла...'
+  'FileCorrectMessage' : 'Файл корректен. Нажмите кнопку "Загрузить файл" для дальнейшей работы.'
+  'FileCheckingMessage' : 'Идёт проверка данных...'
+  'ScriptMessage' : 'Идёт формирование скриптов...'
+  'StatisticSuccessMessage' : 'Успешно обработанных записей: {0, number}'
+  'StatisticErrorsMessage' : 'Неупешно обработанных записей: {0, number}'
+  'CheckEndedMessage' : 'Проверка завершена!'
+  'TitleMessage' : 'Утилита автоматизированной настройки бизнес-параметров'
+  'NoNeededSheetMessage' : 'В файле отсутствуют листы для обработки!'
+
+errorMapping:
+  'Ok' : 'Успешно'
+  'IncorrectTechnology' : 'Технология не найдена'
+  'IncorrectCaseTypes' : 'Не найдено сочетание активных ТИП1, ТИП2, ТИП3'
+  'IncorrectTerritoryId' : 'МРФ не найден'
+  'IncorrectProduct' : 'Продукт не найден'
+  'IncorrectAction' : 'Действие не найдено'
+  'RecordAlreadyExists' : 'Добавляемая строка уже существует'
+  'RecordNotExists'  : 'Отсутствует удаляемая строка'
+  'RecordContainsEmptyValues' : 'Не заполнены обязательные поля'
+
+
+

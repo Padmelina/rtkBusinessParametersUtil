@@ -1,25 +1,22 @@
 package bp.checker.dbcheckers.implementations;
 
 import bp.checker.dbcheckers.AbstractDbChecker;
-import bp.checker.entity.implementations.CaseTypes;
+import bp.checker.dbcheckers.entity.implementations.CaseTypes;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
-import java.sql.Connection;
-import java.util.Map;
-
-import static bp.model.Constants.FieldsName.*;
-import static bp.model.Constants.SqlQueryConstants.CaseTypeList;
-import static bp.model.Constants.SqlQueryConstants.InactiveState;
-import static bp.model.Constants.TableNames.*;
+import static bp.model.constants.Constants.FieldsName.*;
+import static bp.model.constants.Constants.SqlQueryConstants.CaseTypeList;
+import static bp.model.constants.Constants.SqlQueryConstants.InactiveState;
+import static bp.model.constants.Constants.TableNames.*;
 import static org.jooq.impl.DSL.table;
 
 public class CaseTypesChecker extends AbstractDbChecker <CaseTypes> {
-    public CaseTypesChecker(Connection connection, Map<String, String> constants) {
-        super(connection, constants);
+    public CaseTypesChecker() {
+        super();
         table += HGBST_ELM;
     }
 

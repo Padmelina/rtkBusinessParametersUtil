@@ -1,21 +1,18 @@
 package bp.statistic;
 
 
-import bp.model.CheckError;
-import bp.model.entity.AbstractEntity;
+import bp.model.resources.type.CheckError;
+import bp.checker.entitycheckers.entity.AbstractEntity;
 import com.opencsv.CSVWriter;
 
-import java.io.IOException;
 import java.util.Map;
 
 public abstract class AbstractLogWriter<T extends AbstractEntity> {
-    protected Map<CheckError, String> errorText;
     protected CSVWriter csvWriter;
 
-    public AbstractLogWriter(CSVWriter csvWriter, Map<CheckError, String> errorText) {
-        this.errorText = errorText;
+    public AbstractLogWriter(CSVWriter csvWriter) {
         this.csvWriter = csvWriter;
     }
 
-    public abstract void writeToLogFile(Map<T, CheckError> records) throws IOException;
+    public abstract void writeToLogFile(Map<T, CheckError> records);
 }

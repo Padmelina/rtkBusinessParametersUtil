@@ -1,27 +1,23 @@
 package bp.checker.dbcheckers.implementations;
 
 import bp.checker.dbcheckers.AbstractDbChecker;
-import bp.model.entity.InstallerVisit;
+import bp.checker.entitycheckers.entity.InstallerVisit;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
-import java.sql.Connection;
-import java.util.Map;
 
-import static bp.model.Constants.FieldsName.*;
-import static bp.model.Constants.SqlQueryConstants.CaseTypeList;
-import static bp.model.Constants.SqlQueryConstants.InactiveState;
-import static bp.model.Constants.SqlQueryConstants.KKFU;
-import static bp.model.Constants.TableNames.*;
+import static bp.model.constants.Constants.FieldsName.*;
+import static bp.model.constants.Constants.SqlQueryConstants.*;
+import static bp.model.constants.Constants.TableNames.*;
 import static org.jooq.impl.DSL.table;
 
 public class XCWfmMapChecker extends AbstractDbChecker<InstallerVisit> {
 
-    public XCWfmMapChecker(Connection connection, Map<String, String> constants) {
-        super(connection, constants);
+    public XCWfmMapChecker() {
+        super();
         table += X_C_WFM_MAP;
     }
 
@@ -114,7 +110,9 @@ public class XCWfmMapChecker extends AbstractDbChecker<InstallerVisit> {
                             .and(DSL.field(DSL.name(DSL.quotedName("type2"), DSL.unquotedName(TITLE)), String.class)
                                 .eq(visit.getTypeTwo()))
                             .and(DSL.field(DSL.name(DSL.quotedName("type3"), DSL.unquotedName(TITLE)), String.class)
-                                .eq(visit.getTypeThree())))
+                                .eq(visit.getTypeThree()))
+                        .and(DSL.field(DSL.name(DSL.quotedName("wfm"), DSL.unquotedName(X_IS_ACTIVE)), String.class)
+                                .eq(ActiveStatus)))
                 .fetch();
         return sqlResult != null && sqlResult.size() == 1 && 1 == sqlResult.get(0).value1();
     }

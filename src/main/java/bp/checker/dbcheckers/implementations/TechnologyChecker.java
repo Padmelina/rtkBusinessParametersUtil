@@ -1,23 +1,20 @@
 package bp.checker.dbcheckers.implementations;
 
 import bp.checker.dbcheckers.AbstractDbChecker;
-import bp.checker.entity.implementations.StringField;
+import bp.checker.dbcheckers.entity.implementations.StringField;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
 
-import java.sql.Connection;
-import java.util.Map;
-
-import static bp.model.Constants.FieldsName.X_NAME_TECHN;
-import static bp.model.Constants.TableNames.DUAL;
-import static bp.model.Constants.TableNames.TECHNOLOGY;
+import static bp.model.constants.Constants.FieldsName.X_NAME_TECHN;
+import static bp.model.constants.Constants.TableNames.DUAL;
+import static bp.model.constants.Constants.TableNames.TECHNOLOGY;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
 public class TechnologyChecker extends AbstractDbChecker <StringField> {
-    public TechnologyChecker(Connection connection, Map<String, String> constants) {
-        super(connection, constants);
+    public TechnologyChecker() {
+        super();
         this.table += TECHNOLOGY;
     }
 

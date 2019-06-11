@@ -1,20 +1,21 @@
 package bp.checker.dbcheckers;
 
-import bp.checker.entity.AbtractDbCheckEntity;
+import bp.checker.dbcheckers.entity.AbtractDbCheckEntity;
 
 import java.sql.Connection;
 import java.util.Map;
 
-import static bp.model.Constants.TableNames.SA_TABLE;
+import static bp.context.Context.getContext;
+import static bp.model.constants.Constants.TableNames.SA_TABLE;
 
 public abstract class AbstractDbChecker <T extends AbtractDbCheckEntity> {
     protected String table;
     protected Connection connection;
     protected Map<String, String> constants;
 
-    public AbstractDbChecker(Connection connection, Map<String, String> constants) {
-        this.connection = connection;
-        this.constants = constants;
+    public AbstractDbChecker() {
+        this.connection = getContext().getConnection();
+        this.constants = getContext().getResources().getSqlConstants();
         this.table = SA_TABLE;
     }
 

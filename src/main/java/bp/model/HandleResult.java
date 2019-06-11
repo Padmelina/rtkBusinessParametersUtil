@@ -1,6 +1,7 @@
 package bp.model;
 
-import bp.model.entity.AbstractEntity;
+import bp.checker.entitycheckers.entity.AbstractEntity;
+import bp.model.resources.type.CheckError;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
