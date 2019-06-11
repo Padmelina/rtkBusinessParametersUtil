@@ -1,10 +1,12 @@
 group 'BpUtil'
-version '1.0'
+version '2.0'
 
 buildscript {
     dependencies {
         classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
         classpath group: 'org.projectlombok', name: 'lombok', version: '1.16.12'
+        classpath group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
+        classpath group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     }
     repositories {
         maven {
@@ -64,6 +66,8 @@ dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.0.1'
     compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.9.7'
     compile group: 'com.opencsv', name: 'opencsv', version: '4.4'
+    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     compile files('libs/ojdbc6.jar')
 }
 
